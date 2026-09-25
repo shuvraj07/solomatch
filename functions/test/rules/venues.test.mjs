@@ -78,6 +78,21 @@ describe('venue owners, venues, slots and venue ratings', () => {
     await assertFails(setDoc(doc(db(env, 'amit'), 'owners/amit'), ownerDoc()));
   });
 
+  test('owner setup: owner profile and venue created together in one batch', async () => {
+    // This is exactly what the app does (FirestoreVenueRepository.createOwner).
+    const fs = db(env, 'gita');
+    const b = writeBatch(fs);
+    b.set(doc(fs, 'owners/gita'), ownerDoc());
+    b.set(doc(fs, 'venues/gita'), venueDoc('gita'));
+    await assertSucceeds(b.commit());
+
+    // Without the owner profile, no venue.
+    const sita = db(env, 'sita');
+    const b2 = writeBatch(sita);
+    b2.set(doc(sita, 'venues/sita'), venueDoc('sita'));
+    await assertFails(b2.commit());
+  });
+
   test('an owner cannot also create a player profile', async () => {
     await seedOwner('hari');
     const fs = db(env, 'hari');

@@ -432,9 +432,10 @@ service cloud.firestore {
     // owners/{uid}: the business contact. An account is either a player or
     // a venue owner. Each owner has one venue: venues/{ownerUid}.
 
+    // existsAfter: setup writes owners/{uid} and venues/{uid} in one batch.
     function isOwner() {
       return signedIn()
-        && exists(/databases/$(database)/documents/owners/$(request.auth.uid));
+        && existsAfter(/databases/$(database)/documents/owners/$(request.auth.uid));
     }
 
     function validPhone(p) {
