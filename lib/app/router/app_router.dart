@@ -15,6 +15,7 @@ import '../../features/matches/presentation/create_match/create_match_flow_scree
 import '../../features/matches/presentation/create_match/create_match_screen.dart';
 import '../../features/matches/presentation/match_details/match_details_screen.dart';
 import '../../features/my_matches/presentation/my_matches_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/profile_setup_screen.dart';
 import '../../features/players/presentation/player_profile_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
@@ -117,6 +118,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.matchRequestsPattern,
         builder: (context, state) =>
             MatchRequestsScreen(matchId: state.pathParameters['matchId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.myMatches,

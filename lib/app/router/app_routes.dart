@@ -17,6 +17,8 @@ abstract final class AppRoutes {
 
   static const myMatches = '/my-matches';
 
+  static const notifications = '/notifications';
+
   static const playerProfilePattern = '/players/:uid';
   static String playerProfile(String uid) => '/players/$uid';
 

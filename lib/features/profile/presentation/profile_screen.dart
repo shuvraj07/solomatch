@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../app/session/session_provider.dart';
-import '../../auth/data/auth_providers.dart';
+import '../../../app/session/sign_out.dart';
 import 'widgets/player_profile_view.dart';
 
 /// The signed-in player's own profile. Full editing, reviews and settings
@@ -23,7 +23,7 @@ class ProfileScreen extends ConsumerWidget {
             key: const Key('signOutButton'),
             tooltip: 'Sign out',
             icon: const Icon(Icons.logout_rounded),
-            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+            onPressed: () => ref.read(signOutProvider)(),
           ),
         ],
       ),

@@ -38,6 +38,7 @@ flutter run --dart-define=USE_FIREBASE_EMULATORS=true
 | [authentication.md](docs/authentication.md) | Sign-in methods, session and redirects, onboarding |
 | [firestore-schema.md](docs/firestore-schema.md) | Collections, fields, security rules |
 
+| [notifications.md](docs/notifications.md) | Push + inbox: events, delivery, reminders |
 | [realtime.md](docs/realtime.md) | Live data flow, the join flow end to end, why rosters can't overbook |
 
 The Google Maps doc is added with the phase that introduces maps.
@@ -60,7 +61,7 @@ npm run test:rules       # Firestore security rules
 | 3 | Maps + discovery + recommendations | ⏳ |
 | 4 | Join requests + realtime roster (server-enforced capacity) | ✅ |
 | 4b | Match report & awards: auto status, goals/assists/cards, Man of the Match | ✅ |
-| 5 | Notifications + reminders | ⏳ |
+| 5 | Notifications + reminders (push, in-app inbox) | ✅ |
 | 6 | Chat | ⏳ |
 | 7 | My Matches + public player profiles | ✅ |
 | 8 | Favorites + football catalog | ⏳ |

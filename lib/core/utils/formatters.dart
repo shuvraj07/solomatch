@@ -19,6 +19,16 @@ abstract final class Formatters {
   static String minutesOfDay(int minutes) =>
       time(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60));
 
+  /// "just now", "5 min ago", "3 h ago", "yesterday", else a date.
+  static String relative(DateTime then, DateTime now) {
+    final d = now.difference(then);
+    if (d.inMinutes < 1) return 'just now';
+    if (d.inHours < 1) return '${d.inMinutes} min ago';
+    if (d.inDays < 1) return '${d.inHours} h ago';
+    if (d.inDays == 1) return 'yesterday';
+    return shortDate(then);
+  }
+
   /// "1 h 30 min", "2 h", "45 min"
   static String duration(Duration d) {
     final h = d.inHours;

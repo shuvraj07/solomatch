@@ -1,11 +1,16 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getMessaging } from 'firebase-admin/messaging';
+import { onDocumentUpdated, onDocumentWritten } from 'firebase-functions/firestore';
 import { HttpsError, type CallableRequest, onCall } from 'firebase-functions/https';
 import { setGlobalOptions } from 'firebase-functions/options';
 import { onSchedule } from 'firebase-functions/scheduler';
 
 import { advanceMatches } from './matches/lifecycle.js';
 import { parseLines, submitMatchReport } from './matches/match_report.js';
+import { deliver } from './notifications/deliver.js';
+import { forMatchChange, forRequestChange } from './notifications/messages.js';
+import { sendReminders } from './notifications/reminders.js';
 import { acceptRequest, leaveMatch, rejectRequest } from './requests/join_requests.js';
 import { isGroup } from './requests/slots.js';
 import { RuleError } from './shared/rule_error.js';
@@ -77,14 +82,16 @@ export const leaveJoinedMatch = onCall(async (req) => {
 
 /**
  * Every 5 minutes: start matches at kick-off, complete them at the final
- * whistle (updating games played), and decide Man of the Match when voting
- * closes.
+ * whistle (updating games played), decide Man of the Match when voting
+ * closes, and send kick-off reminders.
  */
 export const advanceMatchLifecycle = onSchedule(
   { schedule: 'every 5 minutes', timeZone: 'Asia/Kathmandu' },
   async () => {
-    const result = await advanceMatches(getFirestore());
-    console.log('match lifecycle', result);
+    const db = getFirestore();
+    const result = await advanceMatches(db);
+    const reminders = await sendReminders(db, getMessaging());
+    console.log('match lifecycle', { ...result, reminders });
   },
 );
 
@@ -100,4 +107,48 @@ export const saveMatchReport = onCall(async (req) => {
     }),
   );
   return { ok: true };
+});
+
+// ------------------------------------------------------------- notifications
+
+/** Join request created or changed → notify organizer or player. */
+export const onJoinRequestWritten = onDocumentWritten(
+  'matches/{matchId}/requests/{playerId}',
+  async (event) => {
+    const { matchId, playerId } = event.params;
+    const db = getFirestore();
+    const match = (await db.collection('matches').doc(matchId).get()).data();
+    const items = forRequestChange(
+      matchId,
+      playerId,
+      event.data?.before.data(),
+      event.data?.after.data(),
+      match,
+    );
+    await deliver(db, getMessaging(), items, event.id);
+  },
+);
+
+/** Match status/capacity/MOTM changed → notify the people involved. */
+export const onMatchUpdated = onDocumentUpdated('matches/{matchId}', async (event) => {
+  const { matchId } = event.params;
+  const before = event.data?.before.data();
+  const after = event.data?.after.data();
+  if (!before || !after) return;
+
+  const needsAudience = before.status !== after.status;
+  const db = getFirestore();
+  const ref = db.collection('matches').doc(matchId);
+  const [roster, pending] = needsAudience
+    ? await Promise.all([
+        ref.collection('roster').get(),
+        ref.collection('requests').where('status', '==', 'pending').get(),
+      ])
+    : [null, null];
+
+  const items = forMatchChange(matchId, before, after, {
+    roster: roster?.docs.map((d) => d.id) ?? [],
+    pending: pending?.docs.map((d) => d.id) ?? [],
+  });
+  await deliver(db, getMessaging(), items, event.id);
 });

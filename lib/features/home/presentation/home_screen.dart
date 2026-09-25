@@ -10,6 +10,7 @@ import '../../../core/widgets/placeholder_view.dart';
 import '../../../shared/widgets/match_card.dart';
 import '../../../shared/widgets/player_avatar.dart';
 import '../../matches/data/match_providers.dart';
+import '../../notifications/presentation/notification_bell.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -41,6 +42,7 @@ class HomeScreen extends ConsumerWidget {
                           style: theme.textTheme.headlineSmall,
                         ),
                       ),
+                      const NotificationBell(),
                       if (profile != null)
                         GestureDetector(
                           onTap: () => context.go(AppRoutes.profile),

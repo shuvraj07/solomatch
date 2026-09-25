@@ -332,6 +332,25 @@ service cloud.firestore {
         && incoming().keys().hasOnly(['email', 'createdAt'])
         && (incoming().email == null || incoming().email == request.auth.token.email);
       allow delete: if false;
+
+      // FCM registration tokens (doc ID = token), managed by the app.
+      match /devices/{token} {
+        allow read, delete: if isUser(uid);
+        allow create, update: if isUser(uid)
+          && token.size() <= 4096
+          && incoming().keys().hasOnly(['platform', 'updatedAt'])
+          && incoming().platform in ['android', 'ios', 'web']
+          && incoming().updatedAt == request.time;
+      }
+
+      // Inbox: written only by Cloud Functions; the owner can mark read.
+      match /notifications/{notificationId} {
+        allow read: if isUser(uid);
+        allow update: if isUser(uid)
+          && changedKeys().hasOnly(['read'])
+          && incoming().read == true;
+        allow create, delete: if false;
+      }
     }
   }
 }

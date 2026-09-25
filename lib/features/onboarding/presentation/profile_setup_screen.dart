@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../app/session/sign_out.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/widgets/error_snackbar.dart';
 import '../../../core/widgets/loading_button.dart';
-import '../../auth/data/auth_providers.dart';
 import 'onboarding_controller.dart';
 import 'onboarding_state.dart';
 import 'steps/basics_step.dart';
@@ -60,7 +60,7 @@ class ProfileSetupScreen extends ConsumerWidget {
           title: Text('Step ${step.index + 1} of $total'),
           actions: [
             TextButton(
-              onPressed: () => ref.read(authRepositoryProvider).signOut(),
+              onPressed: () => ref.read(signOutProvider)(),
               child: const Text('Sign out'),
             ),
           ],

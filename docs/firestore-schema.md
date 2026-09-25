@@ -51,8 +51,18 @@ Only the owner can read or write it.
 | `email` | string \| null | Must equal the auth token's email |
 | `createdAt` | timestamp | |
 
-Later phases add notification preferences, FCM device tokens
-(`users/{uid}/devices`), blocks and favorites.
+### `users/{uid}/devices/{token}`
+
+`{platform, updatedAt}`: the FCM tokens of this user's phones. Only the owner
+can read or write them. The server deletes dead ones.
+
+### `users/{uid}/notifications/{id}` 🔒
+
+`{type, title, body, matchId, read, createdAt}`: the in-app inbox, written only
+by Cloud Functions. The owner can read it and flip `read` to true. See
+[notifications.md](notifications.md).
+
+Later phases add notification preferences, blocks and favorites.
 
 ## `matches/{matchId}`: published matches
 
@@ -80,6 +90,7 @@ edit descriptive text or cancel. Roster counts and status belong to the server
 | `status` | string | `published` → `filling` → `full` → `started` → `completed`, or `cancelled`. The client may only set `cancelled`. `started` and `completed` are set by the scheduled `advanceMatchLifecycle` function |
 | `completedAt` 🔒, `votingClosesAt` 🔒 | timestamp | Set on completion; `votingClosesAt` = `endAt` + 24 h |
 | `report` 🔒 | map | `{players: {uid: {goals, assists, yellowCards (0–2), redCard}}, submittedAt, updatedAt}`, written by the `saveMatchReport` function |
+| `remindersSent` 🔒 | map | `{h24, h2, m30}` flags, so each kick-off reminder goes out once |
 | `motmClosed` 🔒, `motm` 🔒 | bool, map | `motm = {winners: [{uid, name, username, photoUrl}], votes, totalVotes}`. Several winners means a tie |
 | `createdAt`, `updatedAt` | timestamp | |
 
@@ -159,6 +170,8 @@ in `functions/test/rules/` (`npm run test:rules`) and cover:
   other players can't edit or cancel at all. Matches can't be deleted.
 - Drafts are private to their organizer.
 - Across all matches, a player can list only their own join requests.
+- Device tokens are owner-only. The inbox can't be written by clients except to
+  mark items read, so nobody can fake notifications.
 - Join requests can only be created by the player themselves, with a player
   card matching their real profile (no faked rating or games played), on an
   open, not-started match they don't organize. Nobody can set `accepted` or

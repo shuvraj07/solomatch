@@ -7,6 +7,7 @@ import '../../features/profile/data/profile_providers.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import 'session_provider.dart';
+import 'sign_out.dart';
 
 /// Shown while the session is resolving, or if loading it failed.
 class SplashScreen extends ConsumerWidget {
@@ -49,7 +50,7 @@ class SplashScreen extends ConsumerWidget {
                   child: const Text('Try again'),
                 ),
                 TextButton(
-                  onPressed: () => ref.read(authRepositoryProvider).signOut(),
+                  onPressed: () => ref.read(signOutProvider)(),
                   child: const Text(
                     'Sign out',
                     style: TextStyle(color: Colors.white),
