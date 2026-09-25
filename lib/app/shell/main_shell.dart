@@ -1,11 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../features/chat/data/chat_providers.dart';
 import '../router/app_routes.dart';
 import 'app_bottom_nav.dart';
 
 /// Scaffold for the four tab branches plus the raised Create Match button.
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerWidget {
   const MainShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
@@ -19,7 +21,7 @@ class MainShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: navigationShell,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -32,6 +34,7 @@ class MainShell extends StatelessWidget {
       bottomNavigationBar: AppBottomNav(
         currentIndex: navigationShell.currentIndex,
         onSelected: _onTabSelected,
+        messagesBadge: ref.watch(unreadChatsProvider),
       ),
     );
   }

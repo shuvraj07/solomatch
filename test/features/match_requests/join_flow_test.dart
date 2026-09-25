@@ -84,6 +84,12 @@ void main() {
 
       expect(find.text("You're in! ⚽"), findsOneWidget);
       expect(find.byKey(const Key('playingButton')), findsOneWidget);
+      // Chat buttons now sit above the roster; scroll down to it.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('rosterCount')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(count().data, '8/10');
       expect(find.text('Amit Karki'), findsOneWidget); // listed on roster
     },

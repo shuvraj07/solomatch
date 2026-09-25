@@ -26,10 +26,14 @@ class AppBottomNav extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onSelected,
+    this.messagesBadge = 0,
   });
 
   final int currentIndex;
   final ValueChanged<int> onSelected;
+
+  /// Unread conversations, shown on the Messages tab.
+  final int messagesBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +42,7 @@ class AppBottomNav extends StatelessWidget {
         item: _items[index],
         selected: index == currentIndex,
         onTap: () => onSelected(index),
+        badge: index == 2 ? messagesBadge : 0,
       ),
     );
 
@@ -64,9 +69,11 @@ class _NavButton extends StatelessWidget {
     required this.item,
     required this.selected,
     required this.onTap,
+    this.badge = 0,
   });
 
   final _NavItem item;
+  final int badge;
   final bool selected;
   final VoidCallback onTap;
 
@@ -85,7 +92,14 @@ class _NavButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(selected ? item.selectedIcon : item.icon, color: color),
+            Badge(
+              isLabelVisible: badge > 0,
+              label: Text('$badge'),
+              child: Icon(
+                selected ? item.selectedIcon : item.icon,
+                color: color,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               item.label,

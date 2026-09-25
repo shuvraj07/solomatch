@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:solomatch/app/app.dart';
 import 'package:solomatch/features/auth/data/auth_providers.dart';
+import 'package:solomatch/features/chat/data/chat_providers.dart';
 import 'package:solomatch/features/match_report/data/match_report_providers.dart';
 import 'package:solomatch/features/match_requests/data/match_request_providers.dart';
 import 'package:solomatch/features/matches/data/match_providers.dart';
@@ -11,6 +12,7 @@ import 'package:solomatch/features/notifications/data/notification_providers.dar
 import 'package:solomatch/features/profile/data/profile_providers.dart';
 
 import '../fakes/fake_auth_repository.dart';
+import '../fakes/fake_chat_repository.dart';
 import '../fakes/fake_match_report_repository.dart';
 import '../fakes/fake_match_repository.dart';
 import '../fakes/fake_match_request_repository.dart';
@@ -30,6 +32,7 @@ Future<void> pumpApp(
   FakeMyMatchesRepository? myMatches,
   FakeNotificationRepository? notifications,
   FakePushMessaging? push,
+  FakeChatRepository? chat,
 }) async {
   final matchRepo = matches ?? FakeMatchRepository();
   tester.view
@@ -58,6 +61,7 @@ Future<void> pumpApp(
           notifications ?? FakeNotificationRepository(),
         ),
         pushMessagingProvider.overrideWithValue(push ?? FakePushMessaging()),
+        chatRepositoryProvider.overrideWithValue(chat ?? FakeChatRepository()),
       ],
       child: const SoloMatchApp(),
     ),

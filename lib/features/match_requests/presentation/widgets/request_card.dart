@@ -16,12 +16,14 @@ class RequestCard extends StatelessWidget {
     required this.busy,
     required this.onAccept,
     required this.onReject,
+    this.onMessage,
   });
 
   final JoinRequest request;
   final bool busy;
   final VoidCallback onAccept;
   final VoidCallback onReject;
+  final VoidCallback? onMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +56,13 @@ class RequestCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (onMessage != null)
+                    IconButton(
+                      key: Key('messageRequester_${p.uid}'),
+                      tooltip: 'Message ${p.name}',
+                      onPressed: onMessage,
+                      icon: const Icon(Icons.chat_bubble_outline_rounded),
+                    ),
                   const Icon(Icons.chevron_right_rounded),
                 ],
               ),

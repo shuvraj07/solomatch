@@ -19,6 +19,9 @@ abstract final class AppRoutes {
 
   static const notifications = '/notifications';
 
+  static const chatPattern = '/chat/:conversationId';
+  static String chat(String conversationId) => '/chat/$conversationId';
+
   static const playerProfilePattern = '/players/:uid';
   static String playerProfile(String uid) => '/players/$uid';
 

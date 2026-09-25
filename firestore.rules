@@ -309,6 +309,55 @@ service cloud.firestore {
       allow read: if signedIn() && resource.data.player.uid == request.auth.uid;
     }
 
+    // ---------- chat ----------
+    // Conversations are created and their members kept in sync only by
+    // Cloud Functions. Members can read, send messages and move their own
+    // read marker.
+
+    match /conversations/{conversationId} {
+      function isMember() {
+        return signedIn() && request.auth.uid in resource.data.participantIds;
+      }
+
+      allow read: if isMember();
+
+      // Only your own entry in readAt, and only to "now".
+      allow update: if isMember()
+        && changedKeys().hasOnly(['readAt'])
+        && incoming().readAt.diff(resource.data.readAt).affectedKeys()
+             .hasOnly([request.auth.uid])
+        && incoming().readAt[request.auth.uid] == request.time;
+
+      allow create, delete: if false;
+
+      match /messages/{messageId} {
+        function conversation() {
+          return get(/databases/$(database)/documents/conversations/$(conversationId)).data;
+        }
+
+        function member() {
+          return signedIn() && request.auth.uid in conversation().participantIds;
+        }
+
+        allow read: if member();
+
+        allow create: if member()
+          && incoming().senderId == request.auth.uid
+          && incoming().keys().hasOnly(['senderId', 'text', 'imageUrl', 'sentAt'])
+          && incoming().sentAt == request.time
+          && (
+            (incoming().text is string
+              && incoming().text.size() >= 1 && incoming().text.size() <= 2000
+              && !('imageUrl' in incoming()))
+            ||
+            (incoming().imageUrl is string && incoming().imageUrl.size() <= 2048
+              && !('text' in incoming()))
+          );
+
+        allow update, delete: if false;
+      }
+    }
+
     // ---------- match drafts (organizer-private) ----------
 
     match /match_drafts/{draftId} {

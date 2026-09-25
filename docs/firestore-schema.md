@@ -146,6 +146,33 @@ the voter. The server tallies them when voting closes.
 `motmAwards` (when voting closes). `ratingAvg` and `ratingCount` arrive with
 reviews.
 
+## `conversations/{id}`: chats (created only by Cloud Functions)
+
+- `match_{matchId}`: **group chat** for the organizer plus the roster. The
+  `onRosterWritten` trigger adds and removes members as players join or leave.
+- `dm_{matchId}_{playerId}`: **private chat** between organizer and player,
+  opened with the `openDirectConversation` callable. Allowed once the player
+  has a join request.
+
+| Field | Type | Notes |
+|---|---|---|
+| `type` | string | `group` \| `direct` |
+| `matchId`, `title` | string | Title = match title |
+| `participantIds` | string[] | Members. Reads require `auth.uid in participantIds` |
+| `participants` | map | `{uid: {name, photoUrl}}` |
+| `lastMessage` 🔒, `lastMessageAt` 🔒 | map, timestamp | Set by `onChatMessageCreated` |
+| `readAt` | map | `{uid: timestamp}`. Each member can set only their own entry, to "now" |
+
+Index: `participantIds` (array-contains) + `lastMessageAt DESC`.
+
+### `conversations/{id}/messages/{messageId}`
+
+`{senderId, text | imageUrl, sentAt}`. Only members can read. Members can post
+as themselves: text of 1–2000 chars, or one photo (uploaded to
+`chat_images/{uid}/{conversationId}/`). Messages can't be edited or deleted.
+Each new message pushes a notification to the other members (push only, not
+the 🔔 inbox).
+
 ## `match_drafts/{draftId}`: unfinished matches
 
 Private to the organizer (`organizerId == auth.uid`). Same shape as the create
@@ -182,6 +209,8 @@ in `functions/test/rules/` (`npm run test:rules`) and cover:
   other players can't edit or cancel at all. Matches can't be deleted.
 - Drafts are private to their organizer.
 - Across all matches, a player can list only their own join requests.
+- Chats: only members can read; you can post only as yourself; conversations
+  can't be created by clients; you can move only your own read marker.
 - Device tokens are owner-only. The inbox can't be written by clients except to
   mark items read, so nobody can fake notifications.
 - Join requests can only be created by the player themselves, with a player

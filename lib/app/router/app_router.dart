@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/sign_in_screen.dart';
 import '../../features/auth/presentation/sign_up_screen.dart';
+import '../../features/chat/presentation/chat_screen.dart';
 import '../../features/chat/presentation/messages_screen.dart';
 import '../../features/discover/presentation/discover_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
@@ -118,6 +119,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.matchRequestsPattern,
         builder: (context, state) =>
             MatchRequestsScreen(matchId: state.pathParameters['matchId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.chatPattern,
+        builder: (context, state) =>
+            ChatScreen(conversationId: state.pathParameters['conversationId']!),
       ),
       GoRoute(
         path: AppRoutes.notifications,

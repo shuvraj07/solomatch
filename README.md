@@ -62,7 +62,7 @@ npm run test:rules       # Firestore security rules
 | 4 | Join requests + realtime roster (server-enforced capacity) | ✅ |
 | 4b | Match report & awards: auto status, goals/assists/cards, Man of the Match | ✅ |
 | 5 | Notifications + reminders (push, in-app inbox) | ✅ |
-| 6 | Chat | ⏳ |
+| 6 | Chat (match group chat + organizer ↔ player, photos, read receipts) | ✅ |
 | 7 | My Matches + public player profiles | ✅ |
 | 8 | Favorites + football catalog | ⏳ |
 | 9 | Reviews, safety, settings | ⏳ |

@@ -1,15 +1,21 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
-import { onDocumentUpdated, onDocumentWritten } from 'firebase-functions/firestore';
+import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/firestore';
 import { HttpsError, type CallableRequest, onCall } from 'firebase-functions/https';
 import { setGlobalOptions } from 'firebase-functions/options';
 import { onSchedule } from 'firebase-functions/scheduler';
 
+import {
+  chatPushes,
+  lastMessagePreview,
+  openDirectChat,
+  syncGroupMember,
+} from './chat/conversations.js';
 import { advanceMatches } from './matches/lifecycle.js';
 import { parseLines, submitMatchReport } from './matches/match_report.js';
 import { publishMatch } from './matches/publish_match.js';
-import { deliver } from './notifications/deliver.js';
+import { deliver, pushToUser } from './notifications/deliver.js';
 import { forLineup, forMatchChange, forRequestChange } from './notifications/messages.js';
 import { sendReminders } from './notifications/reminders.js';
 import { acceptRequest, leaveMatch, rejectRequest } from './requests/join_requests.js';
@@ -178,3 +184,53 @@ export const onMatchUpdated = onDocumentUpdated('matches/{matchId}', async (even
   });
   await deliver(db, getMessaging(), items, event.id);
 });
+
+// ----------------------------------------------------------------------- chat
+
+/** Roster changed → add/remove the player in the match group chat. */
+export const onRosterWritten = onDocumentWritten(
+  'matches/{matchId}/roster/{playerId}',
+  async (event) => {
+    const { matchId, playerId } = event.params;
+    await syncGroupMember(getFirestore(), matchId, playerId, event.data?.after.data());
+  },
+);
+
+/** Opens the organizer ↔ player chat: { matchId, playerId } → { conversationId }. */
+export const openDirectConversation = onCall(async (req) => {
+  const callerUid = requireUid(req);
+  const matchId = requireString(req.data, 'matchId');
+  const playerId = requireString(req.data, 'playerId');
+  const conversationId = await run(() =>
+    openDirectChat(getFirestore(), { matchId, playerId, callerUid }),
+  );
+  return { conversationId };
+});
+
+/** New message → update the conversation preview and push to the others. */
+export const onChatMessageCreated = onDocumentCreated(
+  'conversations/{conversationId}/messages/{messageId}',
+  async (event) => {
+    const message = event.data?.data();
+    if (!message) return;
+    const db = getFirestore();
+    const ref = db.collection('conversations').doc(event.params.conversationId);
+    const conversation = (await ref.get()).data();
+    if (!conversation) return;
+
+    await ref.update({
+      lastMessage: lastMessagePreview(message),
+      lastMessageAt: message.sentAt,
+    });
+    const messaging = getMessaging();
+    await Promise.all(
+      chatPushes(conversation, message).map((p) =>
+        pushToUser(db, messaging, p.uid, { title: p.title, body: p.body }, {
+          type: 'chat_message',
+          route: `/chat/${ref.id}`,
+          conversationId: ref.id,
+        }),
+      ),
+    );
+  },
+);

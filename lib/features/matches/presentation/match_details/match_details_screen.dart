@@ -11,6 +11,7 @@ import '../../../../core/widgets/placeholder_view.dart';
 import '../../../../core/widgets/run_with_feedback.dart';
 import '../../../../shared/widgets/player_avatar.dart';
 import '../../../../shared/widgets/status_chip.dart';
+import '../../../chat/presentation/widgets/match_chat_buttons.dart';
 import '../../../match_report/presentation/widgets/motm_card.dart';
 import '../../../match_requests/data/match_request_providers.dart';
 import '../../../match_requests/domain/join_request.dart';
@@ -157,6 +158,7 @@ class MatchDetailsScreen extends ConsumerWidget {
       AsyncData(value: final m?) => _Loaded(
         match: m,
         roster: roster,
+        myRequest: myRequest,
         viewerUid: uid,
         now: DateTime.now(),
         action: resolveMatchAction(m, uid, myRequest: myRequest),
@@ -191,6 +193,7 @@ class _Loaded extends StatelessWidget {
   const _Loaded({
     required this.match,
     required this.roster,
+    required this.myRequest,
     required this.viewerUid,
     required this.now,
     required this.action,
@@ -205,6 +208,7 @@ class _Loaded extends StatelessWidget {
 
   final FootballMatch match;
   final List<RosterEntry> roster;
+  final JoinRequest? myRequest;
   final String viewerUid;
   final DateTime now;
   final MatchAction action;
@@ -324,6 +328,12 @@ class _Loaded extends StatelessWidget {
           ),
           info(Icons.payments_outlined, m.price.display, 'Per player'),
           const SizedBox(height: AppSpacing.md),
+          MatchChatButtons(
+            match: m,
+            roster: roster,
+            myRequest: myRequest,
+            viewerUid: viewerUid,
+          ),
           if (m.status == MatchStatus.completed) ...[
             MotmCard(match: m, roster: roster, viewerUid: viewerUid, now: now),
             if (m.isOrganizer(viewerUid) && m.isPostMatchOpen(now))

@@ -55,28 +55,41 @@ export async function deliver(
       throw e;
     }
 
-    const devices = await user.collection('devices').get();
-    const tokens = devices.docs.map((d) => d.id);
-    if (tokens.length === 0) continue;
-
-    const result = await push.sendEachForMulticast({
-      tokens,
-      notification: { title: n.title, body: n.body },
-      data: {
-        type: n.type,
-        matchId: n.matchId,
-        route: `/matches/${n.matchId}`,
-        notificationId: inbox.id,
-      },
-      android: { priority: 'high' },
+    await pushToUser(db, push, n.uid, { title: n.title, body: n.body }, {
+      type: n.type,
+      matchId: n.matchId,
+      route: `/matches/${n.matchId}`,
+      notificationId: inbox.id,
     });
     sent++;
-
-    // Forget tokens for uninstalled apps / expired registrations.
-    const dead = result.responses
-      .map((r, i) => (!r.success && DEAD_TOKEN_CODES.has(r.error?.code ?? '') ? tokens[i] : null))
-      .filter((t): t is string => t !== null);
-    await Promise.all(dead.map((t) => user.collection('devices').doc(t).delete()));
   }
   return sent;
+}
+
+/**
+ * Pushes to every registered device of [uid] (no inbox entry). Returns
+ * true if the user had any devices. Tokens FCM rejects as dead are removed.
+ */
+export async function pushToUser(
+  db: Firestore,
+  push: PushSender,
+  uid: string,
+  notification: { title: string; body: string },
+  data: Record<string, string>,
+): Promise<boolean> {
+  const devices = db.collection('users').doc(uid).collection('devices');
+  const tokens = (await devices.get()).docs.map((d) => d.id);
+  if (tokens.length === 0) return false;
+
+  const result = await push.sendEachForMulticast({
+    tokens,
+    notification,
+    data,
+    android: { priority: 'high' },
+  });
+  const dead = result.responses
+    .map((r, i) => (!r.success && DEAD_TOKEN_CODES.has(r.error?.code ?? '') ? tokens[i] : null))
+    .filter((t): t is string => t !== null);
+  await Promise.all(dead.map((t) => devices.doc(t).delete()));
+  return true;
 }
