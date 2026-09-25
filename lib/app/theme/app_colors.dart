@@ -9,6 +9,10 @@ abstract final class AppColors {
   /// Energetic accent used for highlights and the Create Match button.
   static const volt = Color(0xFFC6F432);
 
+  /// From the logo.
+  static const brandBlue = Color(0xFF1E5BD6);
+  static const brandOrange = Color(0xFFFF7A1A);
+
   static const goalkeeper = Color(0xFFF2A516);
   static const defender = Color(0xFF2F6FED);
   static const midfielder = Color(0xFF12A36B);

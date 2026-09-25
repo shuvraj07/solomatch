@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/widgets/error_snackbar.dart';
 import '../../features/auth/data/auth_providers.dart';
 import '../../features/profile/data/profile_providers.dart';
+import '../../shared/widgets/app_logo.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import 'session_provider.dart';
@@ -17,28 +18,27 @@ class SplashScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
     final error = session.error;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final onBackground = dark ? Colors.white : Colors.black87;
 
     return Scaffold(
-      backgroundColor: AppColors.pitch,
+      // Same as the native launch screen, so there's no flash between them.
+      backgroundColor: dark ? const Color(0xFF121417) : Colors.white,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.sports_soccer_rounded,
-                size: 72,
-                color: AppColors.volt,
-              ),
+              const AppLogo(size: 160),
               const SizedBox(height: AppSpacing.xl),
               if (error == null)
-                const CircularProgressIndicator(color: Colors.white)
+                const CircularProgressIndicator(color: AppColors.brandOrange)
               else ...[
                 Text(
                   errorMessage(error),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: onBackground),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 FilledButton.tonal(
@@ -51,10 +51,7 @@ class SplashScreen extends ConsumerWidget {
                 ),
                 TextButton(
                   onPressed: () => ref.read(signOutProvider)(),
-                  child: const Text(
-                    'Sign out',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: const Text('Sign out'),
                 ),
               ],
             ],

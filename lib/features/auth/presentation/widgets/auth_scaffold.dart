@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../shared/widgets/app_logo.dart';
 
 /// Shared layout for auth screens: brand header, title and a form body.
 class AuthScaffold extends StatelessWidget {
@@ -63,19 +63,7 @@ class _BrandMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.pitch,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: const Icon(
-            Icons.sports_soccer_rounded,
-            color: AppColors.volt,
-            size: 30,
-          ),
-        ),
+        const AppLogo(size: 56),
         const SizedBox(width: AppSpacing.md),
         Text(
           'SoloMatch',

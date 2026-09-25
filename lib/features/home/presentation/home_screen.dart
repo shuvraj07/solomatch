@@ -8,6 +8,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/widgets/error_snackbar.dart';
 import '../../../core/widgets/placeholder_view.dart';
+import '../../../shared/widgets/app_logo.dart';
 import '../../../shared/widgets/match_card.dart';
 import '../../../shared/widgets/player_avatar.dart';
 import '../../live/domain/live_models.dart';
@@ -39,6 +40,8 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
+                      const AppLogo(size: 36),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           'Find your next match ⚽',
