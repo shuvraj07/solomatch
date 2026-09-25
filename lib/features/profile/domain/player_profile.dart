@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../shared/models/availability.dart';
+import '../../../shared/models/fitness.dart';
 import '../../../shared/models/position.dart';
 import '../../../shared/models/preferred_foot.dart';
 import '../../../shared/models/skill_level.dart';
@@ -33,5 +34,8 @@ abstract class PlayerProfile with _$PlayerProfile {
 
     /// Privacy: don't show the city to other players.
     @Default(false) bool hideCity,
+
+    /// Set by the player. Injured players can't be picked or ask to join.
+    @Default(Fitness.fit) Fitness fitness,
   }) = _PlayerProfile;
 }

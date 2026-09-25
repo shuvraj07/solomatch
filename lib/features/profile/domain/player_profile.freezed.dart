@@ -17,7 +17,8 @@ mixin _$PlayerProfile {
 
  String get uid; String get fullName;/// Lowercase, unique across players (enforced via `usernames/{username}`).
  String get username; String? get photoUrl; DateTime get dateOfBirth; String get city; String get bio; Position get primaryPosition; List<Position> get secondaryPositions; SkillLevel get skillLevel; PreferredFoot get preferredFoot; int? get heightCm; int get yearsPlaying; List<String> get languages; Availability get availability; PlayerStats get stats;/// Privacy: don't show the city to other players.
- bool get hideCity;
+ bool get hideCity;/// Set by the player. Injured players can't be picked or ask to join.
+ Fitness get fitness;
 /// Create a copy of PlayerProfile
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +30,20 @@ $PlayerProfileCopyWith<PlayerProfile> get copyWith => _$PlayerProfileCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as PlayerProfile;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerProfile&&(identical(other.uid, _this.uid) || other.uid == _this.uid)&&(identical(other.fullName, _this.fullName) || other.fullName == _this.fullName)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.photoUrl, _this.photoUrl) || other.photoUrl == _this.photoUrl)&&(identical(other.dateOfBirth, _this.dateOfBirth) || other.dateOfBirth == _this.dateOfBirth)&&(identical(other.city, _this.city) || other.city == _this.city)&&(identical(other.bio, _this.bio) || other.bio == _this.bio)&&(identical(other.primaryPosition, _this.primaryPosition) || other.primaryPosition == _this.primaryPosition)&&const DeepCollectionEquality().equals(other.secondaryPositions, _this.secondaryPositions)&&(identical(other.skillLevel, _this.skillLevel) || other.skillLevel == _this.skillLevel)&&(identical(other.preferredFoot, _this.preferredFoot) || other.preferredFoot == _this.preferredFoot)&&(identical(other.heightCm, _this.heightCm) || other.heightCm == _this.heightCm)&&(identical(other.yearsPlaying, _this.yearsPlaying) || other.yearsPlaying == _this.yearsPlaying)&&const DeepCollectionEquality().equals(other.languages, _this.languages)&&(identical(other.availability, _this.availability) || other.availability == _this.availability)&&(identical(other.stats, _this.stats) || other.stats == _this.stats)&&(identical(other.hideCity, _this.hideCity) || other.hideCity == _this.hideCity));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayerProfile&&(identical(other.uid, _this.uid) || other.uid == _this.uid)&&(identical(other.fullName, _this.fullName) || other.fullName == _this.fullName)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.photoUrl, _this.photoUrl) || other.photoUrl == _this.photoUrl)&&(identical(other.dateOfBirth, _this.dateOfBirth) || other.dateOfBirth == _this.dateOfBirth)&&(identical(other.city, _this.city) || other.city == _this.city)&&(identical(other.bio, _this.bio) || other.bio == _this.bio)&&(identical(other.primaryPosition, _this.primaryPosition) || other.primaryPosition == _this.primaryPosition)&&const DeepCollectionEquality().equals(other.secondaryPositions, _this.secondaryPositions)&&(identical(other.skillLevel, _this.skillLevel) || other.skillLevel == _this.skillLevel)&&(identical(other.preferredFoot, _this.preferredFoot) || other.preferredFoot == _this.preferredFoot)&&(identical(other.heightCm, _this.heightCm) || other.heightCm == _this.heightCm)&&(identical(other.yearsPlaying, _this.yearsPlaying) || other.yearsPlaying == _this.yearsPlaying)&&const DeepCollectionEquality().equals(other.languages, _this.languages)&&(identical(other.availability, _this.availability) || other.availability == _this.availability)&&(identical(other.stats, _this.stats) || other.stats == _this.stats)&&(identical(other.hideCity, _this.hideCity) || other.hideCity == _this.hideCity)&&(identical(other.fitness, _this.fitness) || other.fitness == _this.fitness));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PlayerProfile;
-  return Object.hash(runtimeType,_this.uid,_this.fullName,_this.username,_this.photoUrl,_this.dateOfBirth,_this.city,_this.bio,_this.primaryPosition,const DeepCollectionEquality().hash(_this.secondaryPositions),_this.skillLevel,_this.preferredFoot,_this.heightCm,_this.yearsPlaying,const DeepCollectionEquality().hash(_this.languages),_this.availability,_this.stats,_this.hideCity);
+  return Object.hash(runtimeType,_this.uid,_this.fullName,_this.username,_this.photoUrl,_this.dateOfBirth,_this.city,_this.bio,_this.primaryPosition,const DeepCollectionEquality().hash(_this.secondaryPositions),_this.skillLevel,_this.preferredFoot,_this.heightCm,_this.yearsPlaying,const DeepCollectionEquality().hash(_this.languages),_this.availability,_this.stats,_this.hideCity,_this.fitness);
 }
 
 @override
 String toString() {
   final _this = this as PlayerProfile;
-  return 'PlayerProfile(uid: ${_this.uid}, fullName: ${_this.fullName}, username: ${_this.username}, photoUrl: ${_this.photoUrl}, dateOfBirth: ${_this.dateOfBirth}, city: ${_this.city}, bio: ${_this.bio}, primaryPosition: ${_this.primaryPosition}, secondaryPositions: ${_this.secondaryPositions}, skillLevel: ${_this.skillLevel}, preferredFoot: ${_this.preferredFoot}, heightCm: ${_this.heightCm}, yearsPlaying: ${_this.yearsPlaying}, languages: ${_this.languages}, availability: ${_this.availability}, stats: ${_this.stats}, hideCity: ${_this.hideCity})';
+  return 'PlayerProfile(uid: ${_this.uid}, fullName: ${_this.fullName}, username: ${_this.username}, photoUrl: ${_this.photoUrl}, dateOfBirth: ${_this.dateOfBirth}, city: ${_this.city}, bio: ${_this.bio}, primaryPosition: ${_this.primaryPosition}, secondaryPositions: ${_this.secondaryPositions}, skillLevel: ${_this.skillLevel}, preferredFoot: ${_this.preferredFoot}, heightCm: ${_this.heightCm}, yearsPlaying: ${_this.yearsPlaying}, languages: ${_this.languages}, availability: ${_this.availability}, stats: ${_this.stats}, hideCity: ${_this.hideCity}, fitness: ${_this.fitness})';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $PlayerProfileCopyWith<$Res>  {
   factory $PlayerProfileCopyWith(PlayerProfile value, $Res Function(PlayerProfile) _then) = _$PlayerProfileCopyWithImpl;
 @useResult
 $Res call({
- String uid, String fullName, String username, String? photoUrl, DateTime dateOfBirth, String city, String bio, Position primaryPosition, List<Position> secondaryPositions, SkillLevel skillLevel, PreferredFoot preferredFoot, int? heightCm, int yearsPlaying, List<String> languages, Availability availability, PlayerStats stats, bool hideCity
+ String uid, String fullName, String username, String? photoUrl, DateTime dateOfBirth, String city, String bio, Position primaryPosition, List<Position> secondaryPositions, SkillLevel skillLevel, PreferredFoot preferredFoot, int? heightCm, int yearsPlaying, List<String> languages, Availability availability, PlayerStats stats, bool hideCity, Fitness fitness
 });
 
 
@@ -70,7 +71,7 @@ class _$PlayerProfileCopyWithImpl<$Res>
 
 /// Create a copy of PlayerProfile
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? fullName = null,Object? username = null,Object? photoUrl = freezed,Object? dateOfBirth = null,Object? city = null,Object? bio = null,Object? primaryPosition = null,Object? secondaryPositions = null,Object? skillLevel = null,Object? preferredFoot = null,Object? heightCm = freezed,Object? yearsPlaying = null,Object? languages = null,Object? availability = null,Object? stats = null,Object? hideCity = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? fullName = null,Object? username = null,Object? photoUrl = freezed,Object? dateOfBirth = null,Object? city = null,Object? bio = null,Object? primaryPosition = null,Object? secondaryPositions = null,Object? skillLevel = null,Object? preferredFoot = null,Object? heightCm = freezed,Object? yearsPlaying = null,Object? languages = null,Object? availability = null,Object? stats = null,Object? hideCity = null,Object? fitness = null,}) {
   return _then(PlayerProfile(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
@@ -89,7 +90,8 @@ as int,languages: null == languages ? _self.languages : languages // ignore: cas
 as List<String>,availability: null == availability ? _self.availability : availability // ignore: cast_nullable_to_non_nullable
 as Availability,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
 as PlayerStats,hideCity: null == hideCity ? _self.hideCity : hideCity // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,fitness: null == fitness ? _self.fitness : fitness // ignore: cast_nullable_to_non_nullable
+as Fitness,
   ));
 }
 /// Create a copy of PlayerProfile
@@ -183,10 +185,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String fullName,  String username,  String? photoUrl,  DateTime dateOfBirth,  String city,  String bio,  Position primaryPosition,  List<Position> secondaryPositions,  SkillLevel skillLevel,  PreferredFoot preferredFoot,  int? heightCm,  int yearsPlaying,  List<String> languages,  Availability availability,  PlayerStats stats,  bool hideCity)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String fullName,  String username,  String? photoUrl,  DateTime dateOfBirth,  String city,  String bio,  Position primaryPosition,  List<Position> secondaryPositions,  SkillLevel skillLevel,  PreferredFoot preferredFoot,  int? heightCm,  int yearsPlaying,  List<String> languages,  Availability availability,  PlayerStats stats,  bool hideCity,  Fitness fitness)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PlayerProfile() when $default != null:
-return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dateOfBirth,_that.city,_that.bio,_that.primaryPosition,_that.secondaryPositions,_that.skillLevel,_that.preferredFoot,_that.heightCm,_that.yearsPlaying,_that.languages,_that.availability,_that.stats,_that.hideCity);case _:
+return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dateOfBirth,_that.city,_that.bio,_that.primaryPosition,_that.secondaryPositions,_that.skillLevel,_that.preferredFoot,_that.heightCm,_that.yearsPlaying,_that.languages,_that.availability,_that.stats,_that.hideCity,_that.fitness);case _:
   return orElse();
 
 }
@@ -204,10 +206,10 @@ return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String fullName,  String username,  String? photoUrl,  DateTime dateOfBirth,  String city,  String bio,  Position primaryPosition,  List<Position> secondaryPositions,  SkillLevel skillLevel,  PreferredFoot preferredFoot,  int? heightCm,  int yearsPlaying,  List<String> languages,  Availability availability,  PlayerStats stats,  bool hideCity)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String fullName,  String username,  String? photoUrl,  DateTime dateOfBirth,  String city,  String bio,  Position primaryPosition,  List<Position> secondaryPositions,  SkillLevel skillLevel,  PreferredFoot preferredFoot,  int? heightCm,  int yearsPlaying,  List<String> languages,  Availability availability,  PlayerStats stats,  bool hideCity,  Fitness fitness)  $default,) {final _that = this;
 switch (_that) {
 case _PlayerProfile():
-return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dateOfBirth,_that.city,_that.bio,_that.primaryPosition,_that.secondaryPositions,_that.skillLevel,_that.preferredFoot,_that.heightCm,_that.yearsPlaying,_that.languages,_that.availability,_that.stats,_that.hideCity);case _:
+return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dateOfBirth,_that.city,_that.bio,_that.primaryPosition,_that.secondaryPositions,_that.skillLevel,_that.preferredFoot,_that.heightCm,_that.yearsPlaying,_that.languages,_that.availability,_that.stats,_that.hideCity,_that.fitness);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -224,10 +226,10 @@ return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String fullName,  String username,  String? photoUrl,  DateTime dateOfBirth,  String city,  String bio,  Position primaryPosition,  List<Position> secondaryPositions,  SkillLevel skillLevel,  PreferredFoot preferredFoot,  int? heightCm,  int yearsPlaying,  List<String> languages,  Availability availability,  PlayerStats stats,  bool hideCity)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String fullName,  String username,  String? photoUrl,  DateTime dateOfBirth,  String city,  String bio,  Position primaryPosition,  List<Position> secondaryPositions,  SkillLevel skillLevel,  PreferredFoot preferredFoot,  int? heightCm,  int yearsPlaying,  List<String> languages,  Availability availability,  PlayerStats stats,  bool hideCity,  Fitness fitness)?  $default,) {final _that = this;
 switch (_that) {
 case _PlayerProfile() when $default != null:
-return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dateOfBirth,_that.city,_that.bio,_that.primaryPosition,_that.secondaryPositions,_that.skillLevel,_that.preferredFoot,_that.heightCm,_that.yearsPlaying,_that.languages,_that.availability,_that.stats,_that.hideCity);case _:
+return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dateOfBirth,_that.city,_that.bio,_that.primaryPosition,_that.secondaryPositions,_that.skillLevel,_that.preferredFoot,_that.heightCm,_that.yearsPlaying,_that.languages,_that.availability,_that.stats,_that.hideCity,_that.fitness);case _:
   return null;
 
 }
@@ -239,7 +241,7 @@ return $default(_that.uid,_that.fullName,_that.username,_that.photoUrl,_that.dat
 
 
 class _PlayerProfile implements PlayerProfile {
-  const _PlayerProfile({required this.uid, required this.fullName, required this.username, this.photoUrl, required this.dateOfBirth, required this.city, this.bio = '', required this.primaryPosition,  List<Position> secondaryPositions = const <Position>[], required this.skillLevel, required this.preferredFoot, this.heightCm, this.yearsPlaying = 0,  List<String> languages = const <String>[], this.availability = const Availability(), this.stats = const PlayerStats(), this.hideCity = false}): _secondaryPositions = secondaryPositions,_languages = languages;
+  const _PlayerProfile({required this.uid, required this.fullName, required this.username, this.photoUrl, required this.dateOfBirth, required this.city, this.bio = '', required this.primaryPosition,  List<Position> secondaryPositions = const <Position>[], required this.skillLevel, required this.preferredFoot, this.heightCm, this.yearsPlaying = 0,  List<String> languages = const <String>[], this.availability = const Availability(), this.stats = const PlayerStats(), this.hideCity = false, this.fitness = Fitness.fit}): _secondaryPositions = secondaryPositions,_languages = languages;
   
 
 @override final  String uid;
@@ -273,6 +275,8 @@ class _PlayerProfile implements PlayerProfile {
 @override@JsonKey() final  PlayerStats stats;
 /// Privacy: don't show the city to other players.
 @override@JsonKey() final  bool hideCity;
+/// Set by the player. Injured players can't be picked or ask to join.
+@override@JsonKey() final  Fitness fitness;
 
 /// Create a copy of PlayerProfile
 /// with the given fields replaced by the non-null parameter values.
@@ -284,18 +288,18 @@ _$PlayerProfileCopyWith<_PlayerProfile> get copyWith => __$PlayerProfileCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerProfile&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.username, username) || other.username == username)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.city, city) || other.city == city)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.primaryPosition, primaryPosition) || other.primaryPosition == primaryPosition)&&const DeepCollectionEquality().equals(other.secondaryPositions, _secondaryPositions)&&(identical(other.skillLevel, skillLevel) || other.skillLevel == skillLevel)&&(identical(other.preferredFoot, preferredFoot) || other.preferredFoot == preferredFoot)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.yearsPlaying, yearsPlaying) || other.yearsPlaying == yearsPlaying)&&const DeepCollectionEquality().equals(other.languages, _languages)&&(identical(other.availability, availability) || other.availability == availability)&&(identical(other.stats, stats) || other.stats == stats)&&(identical(other.hideCity, hideCity) || other.hideCity == hideCity));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayerProfile&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.username, username) || other.username == username)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.city, city) || other.city == city)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.primaryPosition, primaryPosition) || other.primaryPosition == primaryPosition)&&const DeepCollectionEquality().equals(other.secondaryPositions, _secondaryPositions)&&(identical(other.skillLevel, skillLevel) || other.skillLevel == skillLevel)&&(identical(other.preferredFoot, preferredFoot) || other.preferredFoot == preferredFoot)&&(identical(other.heightCm, heightCm) || other.heightCm == heightCm)&&(identical(other.yearsPlaying, yearsPlaying) || other.yearsPlaying == yearsPlaying)&&const DeepCollectionEquality().equals(other.languages, _languages)&&(identical(other.availability, availability) || other.availability == availability)&&(identical(other.stats, stats) || other.stats == stats)&&(identical(other.hideCity, hideCity) || other.hideCity == hideCity)&&(identical(other.fitness, fitness) || other.fitness == fitness));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,uid,fullName,username,photoUrl,dateOfBirth,city,bio,primaryPosition,const DeepCollectionEquality().hash(_secondaryPositions),skillLevel,preferredFoot,heightCm,yearsPlaying,const DeepCollectionEquality().hash(_languages),availability,stats,hideCity);
+    return Object.hash(runtimeType,uid,fullName,username,photoUrl,dateOfBirth,city,bio,primaryPosition,const DeepCollectionEquality().hash(_secondaryPositions),skillLevel,preferredFoot,heightCm,yearsPlaying,const DeepCollectionEquality().hash(_languages),availability,stats,hideCity,fitness);
 }
 
 @override
 String toString() {
-    return 'PlayerProfile(uid: $uid, fullName: $fullName, username: $username, photoUrl: $photoUrl, dateOfBirth: $dateOfBirth, city: $city, bio: $bio, primaryPosition: $primaryPosition, secondaryPositions: $secondaryPositions, skillLevel: $skillLevel, preferredFoot: $preferredFoot, heightCm: $heightCm, yearsPlaying: $yearsPlaying, languages: $languages, availability: $availability, stats: $stats, hideCity: $hideCity)';
+    return 'PlayerProfile(uid: $uid, fullName: $fullName, username: $username, photoUrl: $photoUrl, dateOfBirth: $dateOfBirth, city: $city, bio: $bio, primaryPosition: $primaryPosition, secondaryPositions: $secondaryPositions, skillLevel: $skillLevel, preferredFoot: $preferredFoot, heightCm: $heightCm, yearsPlaying: $yearsPlaying, languages: $languages, availability: $availability, stats: $stats, hideCity: $hideCity, fitness: $fitness)';
 }
 
 
@@ -306,7 +310,7 @@ abstract mixin class _$PlayerProfileCopyWith<$Res> implements $PlayerProfileCopy
   factory _$PlayerProfileCopyWith(_PlayerProfile value, $Res Function(_PlayerProfile) _then) = __$PlayerProfileCopyWithImpl;
 @override @useResult
 $Res call({
- String uid, String fullName, String username, String? photoUrl, DateTime dateOfBirth, String city, String bio, Position primaryPosition, List<Position> secondaryPositions, SkillLevel skillLevel, PreferredFoot preferredFoot, int? heightCm, int yearsPlaying, List<String> languages, Availability availability, PlayerStats stats, bool hideCity
+ String uid, String fullName, String username, String? photoUrl, DateTime dateOfBirth, String city, String bio, Position primaryPosition, List<Position> secondaryPositions, SkillLevel skillLevel, PreferredFoot preferredFoot, int? heightCm, int yearsPlaying, List<String> languages, Availability availability, PlayerStats stats, bool hideCity, Fitness fitness
 });
 
 
@@ -323,7 +327,7 @@ class __$PlayerProfileCopyWithImpl<$Res>
 
 /// Create a copy of PlayerProfile
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? fullName = null,Object? username = null,Object? photoUrl = freezed,Object? dateOfBirth = null,Object? city = null,Object? bio = null,Object? primaryPosition = null,Object? secondaryPositions = null,Object? skillLevel = null,Object? preferredFoot = null,Object? heightCm = freezed,Object? yearsPlaying = null,Object? languages = null,Object? availability = null,Object? stats = null,Object? hideCity = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? fullName = null,Object? username = null,Object? photoUrl = freezed,Object? dateOfBirth = null,Object? city = null,Object? bio = null,Object? primaryPosition = null,Object? secondaryPositions = null,Object? skillLevel = null,Object? preferredFoot = null,Object? heightCm = freezed,Object? yearsPlaying = null,Object? languages = null,Object? availability = null,Object? stats = null,Object? hideCity = null,Object? fitness = null,}) {
   return _then(_PlayerProfile(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
@@ -342,7 +346,8 @@ as int,languages: null == languages ? _self._languages : languages // ignore: ca
 as List<String>,availability: null == availability ? _self.availability : availability // ignore: cast_nullable_to_non_nullable
 as Availability,stats: null == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
 as PlayerStats,hideCity: null == hideCity ? _self.hideCity : hideCity // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,fitness: null == fitness ? _self.fitness : fitness // ignore: cast_nullable_to_non_nullable
+as Fitness,
   ));
 }
 

@@ -58,6 +58,25 @@ class FakeLiveRepository implements LiveRepository {
   }
 
   @override
+  Future<void> setClock(
+    String matchId,
+    ClockPhase phase, {
+    required int elapsedSeconds,
+  }) async {
+    final m = matches?.matchOf(matchId);
+    if (m == null) return;
+    matches!.push(
+      m.copyWith(
+        clock: (
+          phase: phase,
+          periodStartedAt: phase.running ? DateTime.now() : null,
+          elapsedBefore: elapsedSeconds,
+        ),
+      ),
+    );
+  }
+
+  @override
   Stream<bool> watchFollowing(String matchId, String uid) =>
       _live(() => following.contains('$matchId/$uid'));
 

@@ -54,8 +54,15 @@ abstract final class LiveMatch {
   static const earlyWindow = Duration(minutes: 10);
   static const lateWindow = Duration(hours: 3);
 
+  /// Stoppage time and late finishes are fine, but not forever.
+  static const maxElapsed = Duration(minutes: 200);
+
   static LivePhase phase(FootballMatch m, DateTime now) {
     if (m.status == MatchStatus.cancelled) return LivePhase.cancelled;
+    // The organizer's clock wins over the schedule once they kick off.
+    if (m.clock case (:final phase, periodStartedAt: _, elapsedBefore: _)) {
+      return phase == ClockPhase.fullTime ? LivePhase.fullTime : LivePhase.live;
+    }
     if (m.status == MatchStatus.completed || !now.isBefore(m.endAt)) {
       return LivePhase.fullTime;
     }
@@ -65,10 +72,37 @@ abstract final class LiveMatch {
     return LivePhase.upcoming;
   }
 
-  /// Football-style minute: 1' in the first minute, capped at the length.
+  /// Time played. With the organizer's clock: time in finished periods
+  /// plus the running one (paused at half-time). Without it: time since the
+  /// scheduled kick-off, capped at the match length.
+  static Duration elapsed(FootballMatch m, DateTime now) {
+    final clock = m.clock;
+    if (clock == null) {
+      final d = now.difference(m.startAt);
+      if (d.isNegative) return Duration.zero;
+      return d > m.duration ? m.duration : d;
+    }
+    var d = Duration(seconds: clock.elapsedBefore);
+    if (clock.phase.running) {
+      final since = now.difference(clock.periodStartedAt ?? now);
+      if (!since.isNegative) d += since;
+    }
+    return d > maxElapsed ? maxElapsed : d;
+  }
+
+  /// Football-style minute: 1' in the first minute.
   static int minute(FootballMatch m, DateTime now) {
-    final elapsed = now.difference(m.startAt).inMinutes + 1;
-    return elapsed.clamp(0, m.duration.inMinutes);
+    final e = elapsed(m, now);
+    final cap = m.clock == null ? m.duration.inMinutes : maxElapsed.inMinutes;
+    return (e.inMinutes + 1).clamp(1, cap);
+  }
+
+  /// "37:12" for the organizer's running clock.
+  static String clockText(FootballMatch m, DateTime now) {
+    final e = elapsed(m, now);
+    final mm = e.inMinutes.toString().padLeft(2, '0');
+    final ss = (e.inSeconds % 60).toString().padLeft(2, '0');
+    return '$mm:$ss';
   }
 
   static bool canPost(FootballMatch m, String uid, DateTime now) =>

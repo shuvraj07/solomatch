@@ -33,6 +33,22 @@ describe('players + usernames', () => {
     await assertSucceeds(createProfile(db(env, 'raj'), 'raj'));
   });
 
+  test('player sets their own fitness: fit, doubtful or injured', async () => {
+    const firestore = db(env, 'raj');
+    await createProfile(firestore, 'raj');
+    const ref = doc(firestore, 'players', 'raj');
+    for (const fitness of ['injured', 'doubtful', 'fit']) {
+      await assertSucceeds(updateDoc(ref, { fitness, updatedAt: serverTimestamp() }));
+    }
+    await assertFails(updateDoc(ref, { fitness: 'broken', updatedAt: serverTimestamp() }));
+    await assertFails(
+      updateDoc(doc(db(env, 'sita'), 'players', 'raj'), {
+        fitness: 'injured',
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
   test('cannot create a profile without claiming the username', async () => {
     const firestore = db(env, 'raj');
     await assertFails(setDoc(doc(firestore, 'players', 'raj'), profileDoc()));

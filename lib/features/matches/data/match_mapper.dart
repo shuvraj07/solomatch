@@ -73,6 +73,17 @@ abstract final class MatchMapper {
           _ => null,
         },
         followerCount: _int(d['followerCount']),
+        clock: switch (d['clock']) {
+          final Map<String, dynamic> c
+              when ClockPhase.fromWire(c['phase'] as String?) != null =>
+            (
+              phase: ClockPhase.fromWire(c['phase'] as String?)!,
+              // Null for a moment while the server timestamp is pending.
+              periodStartedAt: (c['periodStartedAt'] as Timestamp?)?.toDate(),
+              elapsedBefore: _int(c['elapsedBefore']),
+            ),
+          _ => null,
+        },
       );
 
   static MatchReport reportFrom(Map<String, dynamic> r) => MatchReport(

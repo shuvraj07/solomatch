@@ -110,6 +110,22 @@ describe('acceptRequest', () => {
     assert.equal(m.status, 'full');
   });
 
+  test('an injured player cannot be accepted', async () => {
+    await seed({ pending: ['raj'] });
+    await db.doc('players/raj').set({ fullName: 'Raj Shrestha', fitness: 'injured' });
+    await rejects(
+      acceptRequest(db, { matchId: 'm1', playerId: 'raj', callerUid: 'org' }),
+      'failed-precondition',
+      'Raj Shrestha is marked injured',
+    );
+    assert.equal(await requestStatus('raj'), 'pending');
+
+    await db.doc('players/raj').update({ fitness: 'doubtful' });
+    await acceptRequest(db, { matchId: 'm1', playerId: 'raj', callerUid: 'org' });
+    assert.equal(await requestStatus('raj'), 'accepted');
+    await db.doc('players/raj').delete();
+  });
+
   test('only the organizer can accept', async () => {
     await seed({ pending: ['raj'] });
     await rejects(

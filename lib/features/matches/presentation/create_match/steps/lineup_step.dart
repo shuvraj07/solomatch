@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../../app/session/session_provider.dart';
 import '../../../../../app/theme/app_spacing.dart';
 import '../../../../../core/widgets/count_stepper.dart';
+import '../../../../../shared/models/fitness.dart';
 import '../../../../../shared/models/position_group.dart';
 import '../../../../../shared/widgets/player_avatar.dart';
 import '../../../../profile/data/profile_providers.dart';
@@ -159,9 +160,15 @@ class _LineupStepState extends ConsumerState<LineupStep> {
                   leading: PlayerAvatar(name: p.fullName, photoUrl: p.photoUrl),
                   title: Text(p.fullName),
                   subtitle: Text(
-                    '@${p.username} · ${p.primaryPosition.shortLabel}',
+                    '@${p.username} · ${p.primaryPosition.shortLabel}'
+                    '${p.fitness == Fitness.fit ? '' : ' · ${p.fitness.emoji} ${p.fitness.label}'}',
                   ),
-                  trailing: const Icon(Icons.add_circle_outline_rounded),
+                  enabled: p.fitness.canPlay,
+                  trailing: Icon(
+                    p.fitness.canPlay
+                        ? Icons.add_circle_outline_rounded
+                        : Icons.block_rounded,
+                  ),
                   onTap: () => _add(p),
                 ),
           ],

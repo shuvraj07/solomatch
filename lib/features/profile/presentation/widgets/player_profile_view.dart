@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../shared/models/fitness.dart';
 import '../../../../shared/widgets/player_avatar.dart';
 import '../../../../shared/widgets/position_badge.dart';
 import '../../../reviews/presentation/widgets/reviews_section.dart';
@@ -15,6 +16,7 @@ class PlayerProfileView extends StatelessWidget {
     required this.profile,
     this.actions = const [],
     this.isMe = false,
+    this.onFitnessChanged,
   });
 
   final PlayerProfile profile;
@@ -24,6 +26,9 @@ class PlayerProfileView extends StatelessWidget {
 
   /// Viewing your own profile (privacy settings don't hide anything).
   final bool isMe;
+
+  /// Set on your own profile: shows the fitness picker.
+  final ValueChanged<Fitness>? onFitnessChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +59,34 @@ class PlayerProfileView extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(color: muted),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
+        if (onFitnessChanged case final onChanged?)
+          Center(
+            child: SegmentedButton<Fitness>(
+              key: const Key('fitnessPicker'),
+              showSelectedIcon: false,
+              segments: [
+                for (final f in Fitness.values)
+                  ButtonSegment(
+                    value: f,
+                    label: Text(
+                      '${f.emoji} ${f.label}',
+                      key: Key('fitness_${f.name}'),
+                    ),
+                  ),
+              ],
+              selected: {profile.fitness},
+              onSelectionChanged: (s) => onChanged(s.first),
+            ),
+          )
+        else if (profile.fitness != Fitness.fit)
+          Center(
+            child: Chip(
+              key: const Key('fitnessBadge'),
+              label: Text('${profile.fitness.emoji} ${profile.fitness.label}'),
+            ),
+          ),
+        const SizedBox(height: AppSpacing.sm),
         Wrap(
           alignment: WrapAlignment.center,
           spacing: AppSpacing.sm,

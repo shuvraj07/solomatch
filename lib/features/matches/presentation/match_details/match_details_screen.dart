@@ -87,6 +87,17 @@ class MatchDetailsScreen extends ConsumerWidget {
   ) async {
     final profile = ref.read(currentProfileProvider);
     if (profile == null) return;
+    if (!profile.fitness.canPlay) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'You’re marked injured. Set yourself fit on your profile to '
+            'join matches.',
+          ),
+        ),
+      );
+      return;
+    }
     final input = await showRequestToJoinSheet(
       context,
       match: match,

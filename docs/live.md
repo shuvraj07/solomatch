@@ -11,8 +11,31 @@ goals and cards as they happen, and followers get a push for every goal.
 | Live (kicked off, before `endAt`) | Scoreboard at the top: team names, big score, **● LIVE 37'**, timeline, Follow. The organizer also gets the controls. | "Live now" card: `Tigers 2 – 1 Eagles · 37'` |
 | Full time | Scoreboard with **FULL TIME** and the timeline (hidden if nothing was posted) | – |
 
-The minute is football-style (1' in the first minute), counted from
-`startAt` and capped at the match length. It refreshes every 30 seconds.
+### The match clock
+
+Until the organizer taps **▶ Kick off**, the minute follows the schedule
+(1' in the first minute, counted from `startAt`, capped at the match length).
+From then on, the organizer's whistle drives a real clock shown as **37:12**,
+ticking every second:
+
+```
+▶ Kick off → ⏸ Half-time → ▶ 2nd half → 🏁 Full time
+```
+
+`matches/{id}.clock = {phase, periodStartedAt, elapsedBefore}`:
+
+- `phase`: `first_half` | `half_time` | `second_half` | `full_time`.
+- `periodStartedAt`: the server time the running period started, or null
+  while paused.
+- `elapsedBefore`: seconds played before the running period.
+
+Time played is `elapsedBefore + (now − periodStartedAt)` while running,
+otherwise `elapsedBefore`. This allows late kick-offs, a half-time pause and
+stoppage time, capped at 200 minutes. The rules allow clock changes only by
+the organizer, 10 minutes before kick-off to 3 hours after the end.
+**Full time** asks for confirmation. It stops the clock and sends the
+full-time push straight away. It doesn't complete the match early: the
+scheduled lifecycle still does that at `endAt`.
 
 ## Organizer controls
 
@@ -48,6 +71,25 @@ instantly. Lists use the server's `score`.
 | Event | Who | Example |
 |---|---|---|
 | Goal (`live_goal`) | Organizer, roster and followers, except the person who posted it | "⚽ GOAL! Tigers 1 – 0 Eagles" · "Amit Karki (Tigers) scores 12' · Friday Futsal" |
-| Full time (`full_time`) | Same audience, when the match completes with a score | "🏁 Full time: Tigers 2 – 1 Eagles" |
+| Full time (`full_time`) | Same audience, once: at the organizer's 🏁 Full time, or when the match completes if it was followed live | "🏁 Full time: Tigers 2 – 1 Eagles" |
 
 Both belong to the **Match updates** notification setting.
+
+## Player fitness
+
+Players set their own fitness on their Profile tab:
+**✅ Fully fit** (default), **🤕 Minor knock** or **🚑 Injured**
+(`players/{uid}.fitness`: `fit` | `doubtful` | `injured`). Other players see a
+badge on the profile unless the player is fully fit.
+
+An injured player can't be selected:
+
+| Where | App | Server |
+|---|---|---|
+| Request to join | Blocked with a message | Rules refuse the request |
+| Organizer accepting a request | Card shows "🚑 Injured", Accept disabled | `acceptJoinRequest` refuses |
+| "Your players" when creating a match | Shown but greyed out | `publishDraft` refuses (also "I'm playing too" if the organizer is injured) |
+
+A **minor knock** is allowed: the request card warns the organizer, "check
+before accepting". A player who gets injured after being accepted stays on
+the roster; the organizer can see the badge on their profile.

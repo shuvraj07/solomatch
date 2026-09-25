@@ -76,6 +76,17 @@ describe('join requests + roster', () => {
     await assertSucceeds(ask('amit'));
   });
 
+  test('an injured player cannot request to join', async () => {
+    await env.withSecurityRulesDisabled((ctx) =>
+      updateDoc(doc(ctx.firestore(), 'players/amit'), { fitness: 'injured' }),
+    );
+    await assertFails(ask('amit'));
+    await env.withSecurityRulesDisabled((ctx) =>
+      updateDoc(doc(ctx.firestore(), 'players/amit'), { fitness: 'doubtful' }),
+    );
+    await assertSucceeds(ask('amit'));
+  });
+
   test('cannot request on behalf of someone else', async () => {
     await assertFails(
       setDoc(doc(db(env, 'amit'), 'matches/m1/requests/sita'), requestDoc('sita')),

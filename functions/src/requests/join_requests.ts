@@ -39,7 +39,11 @@ export async function acceptRequest(db: Firestore, input: AcceptInput) {
   const r = refs(db, input.matchId, input.playerId);
 
   return db.runTransaction(async (tx) => {
-    const [matchSnap, requestSnap] = await tx.getAll(r.match, r.request);
+    const [matchSnap, requestSnap, playerSnap] = await tx.getAll(
+      r.match,
+      r.request,
+      db.collection('players').doc(input.playerId),
+    );
     const match = matchSnap.data();
     if (!match) throw new RuleError('not-found', 'Match not found.');
     if (match.organizer?.uid !== input.callerUid) {
@@ -57,6 +61,13 @@ export async function acceptRequest(db: Firestore, input: AcceptInput) {
       throw new RuleError('failed-precondition', 'This match is no longer taking players.');
     }
     assertBeforeKickOff(match);
+    const player = playerSnap.data();
+    if (player?.fitness === 'injured') {
+      throw new RuleError(
+        'failed-precondition',
+        `${player.fullName ?? 'This player'} is marked injured and can't be selected.`,
+      );
+    }
 
     const slots = match.slots as Slots;
     const preferred: Group = isGroup(request.preferredGroup) ? request.preferredGroup : 'any';

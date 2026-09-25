@@ -7,8 +7,10 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../core/widgets/error_snackbar.dart';
 import '../../../core/widgets/placeholder_view.dart';
 import '../../../core/widgets/run_with_feedback.dart';
+import '../../../shared/models/fitness.dart';
 import '../../chat/data/chat_providers.dart';
 import '../../matches/data/match_providers.dart';
+import '../../profile/data/profile_providers.dart';
 import '../data/match_request_providers.dart';
 import 'widgets/request_card.dart';
 
@@ -92,6 +94,9 @@ class _MatchRequestsScreenState extends ConsumerState<MatchRequestsScreen> {
               onAccept: () => _decide(r.playerId, accept: true),
               onReject: () => _decide(r.playerId, accept: false),
               onMessage: () => _message(r.playerId),
+              fitness:
+                  ref.watch(playerProfileProvider(r.playerId)).value?.fitness ??
+                  Fitness.fit,
             );
           },
         ),

@@ -28,6 +28,31 @@ enum BookingStatus {
   };
 }
 
+/// Organizer-controlled match clock.
+enum ClockPhase {
+  firstHalf('first_half'),
+  halfTime('half_time'),
+  secondHalf('second_half'),
+  fullTime('full_time');
+
+  const ClockPhase(this.wireName);
+
+  final String wireName;
+
+  bool get running => this == firstHalf || this == secondHalf;
+
+  static ClockPhase? fromWire(String? s) =>
+      values.where((p) => p.wireName == s).firstOrNull;
+}
+
+/// `matches/{id}.clock`: the current phase, when the running period
+/// started, and the seconds played before it.
+typedef MatchClock = ({
+  ClockPhase phase,
+  DateTime? periodStartedAt,
+  int elapsedBefore,
+});
+
 /// Team names shown in the live match center.
 typedef MatchTeams = ({String home, String away});
 
@@ -88,6 +113,10 @@ abstract class FootballMatch with _$FootballMatch {
     @Default((home: 'Team A', away: 'Team B')) MatchTeams teams,
     LiveScore? score,
     @Default(0) int followerCount,
+
+    /// Null until the organizer taps Kick off; the clock then follows the
+    /// real game instead of the scheduled times.
+    MatchClock? clock,
   }) = _FootballMatch;
 
   const FootballMatch._();

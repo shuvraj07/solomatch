@@ -166,6 +166,9 @@ export async function publishMatch(
       return g;
     };
 
+    if (draft.organizerPlaying === true && organizer.fitness === 'injured') {
+      fail("You're marked injured. Update your fitness to play.");
+    }
     if (draft.organizerPlaying === true) {
       const player = card(input.callerUid, organizer);
       roster.push({
@@ -176,6 +179,7 @@ export async function publishMatch(
     }
     playerSnaps.forEach((snap, i) => {
       const p = snap.data() ?? fail('One of the selected players no longer exists.');
+      if (p.fitness === 'injured') fail(`${p.fullName} is marked injured and can't be selected.`);
       roster.push({
         uid: snap.id,
         player: card(snap.id, p),

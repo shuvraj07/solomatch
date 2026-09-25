@@ -109,4 +109,39 @@ describe('live match center', () => {
     await assertFails(getDocs(collection(db(env, 'fan'), 'matches/m1/followers')));
     await assertSucceeds(deleteDoc(mine));
   });
+
+  test('match clock: organizer only, running phases start now', async () => {
+    await seedMatch();
+    const ref = doc(db(env, 'raj'), 'matches/m1');
+    const clock = (phase, periodStartedAt, elapsedBefore = 0) => ({
+      clock: { phase, periodStartedAt, elapsedBefore },
+      updatedAt: serverTimestamp(),
+    });
+    await assertSucceeds(updateDoc(ref, clock('first_half', serverTimestamp())));
+    await assertSucceeds(updateDoc(ref, clock('half_time', null, 1800)));
+    await assertSucceeds(updateDoc(ref, clock('second_half', serverTimestamp(), 1800)));
+    await assertSucceeds(updateDoc(ref, clock('full_time', null, 3600)));
+    // Running without a start time, a paused phase with one, bad values.
+    await assertFails(updateDoc(ref, clock('first_half', null)));
+    await assertFails(updateDoc(ref, clock('half_time', serverTimestamp(), 10)));
+    await assertFails(updateDoc(ref, clock('extra_time', null)));
+    await assertFails(updateDoc(ref, clock('half_time', null, -5)));
+    await assertFails(
+      updateDoc(doc(db(env, 'amit'), 'matches/m1'), clock('first_half', serverTimestamp())),
+    );
+  });
+
+  test('match clock: not long before kick-off or once cancelled', async () => {
+    await seedMatch({ status: 'published', startAt: at(60 * MIN), endAt: at(120 * MIN) });
+    const ref = doc(db(env, 'raj'), 'matches/m1');
+    const kickOff = {
+      clock: { phase: 'first_half', periodStartedAt: serverTimestamp(), elapsedBefore: 0 },
+      updatedAt: serverTimestamp(),
+    };
+    await assertFails(updateDoc(ref, kickOff));
+    await seedMatch({ status: 'published', startAt: at(5 * MIN), endAt: at(65 * MIN) });
+    await assertSucceeds(updateDoc(ref, kickOff));
+    await seedMatch({ status: 'cancelled' });
+    await assertFails(updateDoc(ref, kickOff));
+  });
 });

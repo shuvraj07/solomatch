@@ -2,7 +2,9 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../app/router/app_routes.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
+import '../../../../shared/models/fitness.dart';
 import '../../../../shared/widgets/player_avatar.dart';
 import '../../../../shared/widgets/position_badge.dart';
 import '../../domain/join_request.dart';
@@ -17,6 +19,7 @@ class RequestCard extends StatelessWidget {
     required this.onAccept,
     required this.onReject,
     this.onMessage,
+    this.fitness = Fitness.fit,
   });
 
   final JoinRequest request;
@@ -24,6 +27,9 @@ class RequestCard extends StatelessWidget {
   final VoidCallback onAccept;
   final VoidCallback onReject;
   final VoidCallback? onMessage;
+
+  /// The player's current fitness (from their live profile).
+  final Fitness fitness;
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +99,22 @@ class RequestCard extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               Text('"${request.message}"', style: theme.textTheme.bodyMedium),
             ],
+            if (fitness != Fitness.fit)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Text(
+                  fitness.canPlay
+                      ? '${fitness.emoji} ${fitness.label}: check before accepting'
+                      : '${fitness.emoji} Injured: can’t be selected right now',
+                  key: Key('fitness_${p.uid}'),
+                  style: TextStyle(
+                    color: fitness.canPlay
+                        ? AppColors.statusFilling
+                        : theme.colorScheme.error,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
@@ -108,7 +130,7 @@ class RequestCard extends StatelessWidget {
                 Expanded(
                   child: FilledButton.icon(
                     key: Key('accept_${p.uid}'),
-                    onPressed: busy ? null : onAccept,
+                    onPressed: busy || !fitness.canPlay ? null : onAccept,
                     icon: const Icon(Icons.check_rounded),
                     label: const Text('Accept'),
                   ),

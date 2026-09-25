@@ -17,6 +17,14 @@ abstract interface class LiveRepository {
 
   Future<void> setTeams(String matchId, MatchTeams teams);
 
+  /// Moves the organizer's clock to [phase]. [elapsedSeconds] is the time
+  /// played so far (kept while paused; the base for a running period).
+  Future<void> setClock(
+    String matchId,
+    ClockPhase phase, {
+    required int elapsedSeconds,
+  });
+
   Stream<bool> watchFollowing(String matchId, String uid);
 
   Future<void> setFollowing(String matchId, String uid, {required bool on});
@@ -73,6 +81,22 @@ class FirestoreLiveRepository implements LiveRepository {
   Future<void> setTeams(String matchId, MatchTeams teams) => _guard(
     () => _match(matchId).update({
       'teams': {'home': teams.home.trim(), 'away': teams.away.trim()},
+      'updatedAt': FieldValue.serverTimestamp(),
+    }),
+  );
+
+  @override
+  Future<void> setClock(
+    String matchId,
+    ClockPhase phase, {
+    required int elapsedSeconds,
+  }) => _guard(
+    () => _match(matchId).update({
+      'clock': {
+        'phase': phase.wireName,
+        'periodStartedAt': phase.running ? FieldValue.serverTimestamp() : null,
+        'elapsedBefore': elapsedSeconds,
+      },
       'updatedAt': FieldValue.serverTimestamp(),
     }),
   );

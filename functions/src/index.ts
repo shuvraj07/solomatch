@@ -28,7 +28,9 @@ import { RuleError } from './shared/rule_error.js';
 import { bookedNotice, cancelBookingByVenue, releaseBooking } from './venues/bookings.js';
 import { applyVenueRating } from './venues/ratings.js';
 import {
+  claimFullTime,
   fullTimeMessage,
+  reachedFullTime,
   goalMessage,
   liveAudience,
   recomputeScore,
@@ -210,11 +212,11 @@ export const onMatchUpdated = onDocumentUpdated('matches/{matchId}', async (even
     roster: roster?.docs.map((d) => d.id) ?? [],
     pending: pending?.docs.map((d) => d.id) ?? [],
   });
-  // Full time: tell players and followers the final score.
-  if (after.status === 'completed' && before.status !== 'completed' && after.score) {
+  // Full time: tell players and followers the final score, once.
+  if (reachedFullTime(before, after) && (await claimFullTime(db, matchId))) {
     const messaging = getMessaging();
     const audience = await liveAudience(db, matchId, after);
-    const msg = fullTimeMessage(after, after.score);
+    const msg = fullTimeMessage(after, after.score ?? { home: 0, away: 0 });
     await Promise.all(
       audience.map((uid) =>
         pushToUser(db, messaging, uid, msg, {

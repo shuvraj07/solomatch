@@ -43,9 +43,11 @@ class _LiveCenterState extends ConsumerState<LiveCenter> {
   @override
   void initState() {
     super.initState();
-    // Keeps the match minute and phase current.
-    _tick = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() {});
+    // Keeps the clock current: every second while the organizer's clock
+    // runs, otherwise every 30 seconds.
+    _tick = Timer.periodic(const Duration(seconds: 1), (t) {
+      final running = m.clock?.phase.running ?? false;
+      if (mounted && (running || t.tick % 30 == 0)) setState(() {});
     });
   }
 
@@ -117,6 +119,42 @@ class _LiveCenterState extends ConsumerState<LiveCenter> {
     success: following ? null : 'You’ll get goal alerts for this match',
   );
 
+  Future<void> _setClock(ClockPhase phase) async {
+    if (phase == ClockPhase.fullTime) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Blow the final whistle?'),
+          content: const Text(
+            'Players and followers get the final score. You can still fix '
+            'goals and cards afterwards.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Not yet'),
+            ),
+            FilledButton(
+              key: const Key('confirmFullTimeButton'),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Full time'),
+            ),
+          ],
+        ),
+      );
+      if (ok != true || !mounted) return;
+    }
+    final elapsed = phase == ClockPhase.firstHalf
+        ? 0
+        : LiveMatch.elapsed(m, DateTime.now()).inSeconds;
+    await runWithFeedback(
+      context,
+      () => ref
+          .read(liveRepositoryProvider)
+          .setClock(m.id, phase, elapsedSeconds: elapsed),
+    );
+  }
+
   Future<void> _editTeams() async {
     final teams = await showDialog<MatchTeams>(
       context: context,
@@ -152,7 +190,25 @@ class _LiveCenterState extends ConsumerState<LiveCenter> {
     final theme = Theme.of(context);
     final started = phase != LivePhase.upcoming;
 
+    final clock = m.clock;
     final status = switch (phase) {
+      LivePhase.live when clock?.phase == ClockPhase.halfTime => Text(
+        '⏸ HALF-TIME ${LiveMatch.clockText(m, now)}',
+        key: const Key('liveMinute'),
+        style: theme.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      LivePhase.live when clock != null => Text(
+        '● LIVE ${LiveMatch.clockText(m, now)}'
+        '${clock.phase == ClockPhase.secondHalf ? ' · 2nd half' : ''}',
+        key: const Key('liveMinute'),
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: AppColors.live,
+          fontWeight: FontWeight.w900,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      ),
       LivePhase.live => Text(
         '● LIVE ${LiveMatch.minute(m, now)}\'',
         key: const Key('liveMinute'),
@@ -285,6 +341,8 @@ class _LiveCenterState extends ConsumerState<LiveCenter> {
             ],
             if (canPost) ...[
               const SizedBox(height: AppSpacing.lg),
+              _ClockControls(phase: clock?.phase, onChanged: _setClock),
+              const SizedBox(height: AppSpacing.sm),
               Row(
                 children: [
                   for (final side in TeamSide.values) ...[
@@ -599,5 +657,45 @@ class _TeamsDialogState extends State<_TeamsDialog> {
         ),
       ],
     );
+  }
+}
+
+/// Organizer's whistle: Kick off → Half-time → 2nd half → Full time.
+class _ClockControls extends StatelessWidget {
+  const _ClockControls({required this.phase, required this.onChanged});
+
+  final ClockPhase? phase;
+  final ValueChanged<ClockPhase> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget button(String key, String label, ClockPhase next) => Expanded(
+      child: FilledButton.tonal(
+        key: Key(key),
+        onPressed: () => onChanged(next),
+        child: Text(label),
+      ),
+    );
+
+    final fullTime = button(
+      'clock_fulltime',
+      '🏁 Full time',
+      ClockPhase.fullTime,
+    );
+    final buttons = switch (phase) {
+      null => [button('clock_kickoff', '▶ Kick off', ClockPhase.firstHalf)],
+      ClockPhase.firstHalf => [
+        button('clock_halftime', '⏸ Half-time', ClockPhase.halfTime),
+        const SizedBox(width: AppSpacing.sm),
+        fullTime,
+      ],
+      ClockPhase.halfTime => [
+        button('clock_secondhalf', '▶ 2nd half', ClockPhase.secondHalf),
+      ],
+      ClockPhase.secondHalf => [fullTime],
+      ClockPhase.fullTime => const <Widget>[],
+    };
+    if (buttons.isEmpty) return const SizedBox.shrink();
+    return Row(children: buttons);
   }
 }

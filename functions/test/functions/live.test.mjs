@@ -5,7 +5,9 @@ import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
 import {
+  claimFullTime,
   fullTimeMessage,
+  reachedFullTime,
   goalMessage,
   liveAudience,
   recomputeScore,
@@ -81,5 +83,21 @@ describe('live match center', () => {
       fullTimeMessage(noNames, { home: 3, away: 0 }).title,
       '🏁 Full time: Team A 3 – 0 Team B',
     );
+  });
+
+  test('full time: organizer whistle or completion, notified once', async () => {
+    const running = { clock: { phase: 'second_half' }, status: 'started' };
+    assert.equal(reachedFullTime(running, { ...running, clock: { phase: 'full_time' } }), true);
+    // Scheduler completes a match that had live goals but no whistle.
+    assert.equal(
+      reachedFullTime({ status: 'started' }, { status: 'completed', score: { home: 1, away: 0 } }),
+      true,
+    );
+    // Nothing was followed live: no full-time push.
+    assert.equal(reachedFullTime({ status: 'started' }, { status: 'completed' }), false);
+
+    await db.doc('matches/m1').set(match);
+    assert.equal(await claimFullTime(db, 'm1'), true);
+    assert.equal(await claimFullTime(db, 'm1'), false);
   });
 });

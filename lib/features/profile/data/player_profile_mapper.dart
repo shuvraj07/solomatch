@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../shared/models/availability.dart';
+import '../../../shared/models/fitness.dart';
 import '../../../shared/models/position.dart';
 import '../../../shared/models/preferred_foot.dart';
 import '../../../shared/models/skill_level.dart';
@@ -36,6 +37,7 @@ abstract final class PlayerProfileMapper {
       hideCity:
           (data['privacy'] as Map<String, dynamic>?)?['hideCity'] as bool? ??
           false,
+      fitness: Fitness.fromName(data['fitness'] as String?),
       stats: PlayerStats(
         gamesPlayed: (stats['gamesPlayed'] as num?)?.toInt() ?? 0,
         gamesOrganized: (stats['gamesOrganized'] as num?)?.toInt() ?? 0,
@@ -70,6 +72,7 @@ abstract final class PlayerProfileMapper {
     'languages': p.languages,
     'availability': p.availability.toStrings(),
     'privacy': {'hideCity': p.hideCity},
+    'fitness': p.fitness.name,
   };
 
   /// Birthdays are stored as UTC midnight; read them back as a local

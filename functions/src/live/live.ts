@@ -74,3 +74,25 @@ export async function liveAudience(db: Firestore, matchId: string, match: Docume
     ]),
   ].filter(Boolean);
 }
+
+/**
+ * True once per match: when the organizer blows full time or the match
+ * completes, whichever comes first. Claims a flag in a transaction so the
+ * full-time push is sent only once.
+ */
+export async function claimFullTime(db: Firestore, matchId: string): Promise<boolean> {
+  const ref = db.collection('matches').doc(matchId);
+  return db.runTransaction(async (tx) => {
+    const m = (await tx.get(ref)).data();
+    if (!m || m.fullTimeNotified === true) return false;
+    tx.update(ref, { fullTimeNotified: true });
+    return true;
+  });
+}
+
+/** Did this update reach full time (organizer's whistle or completion)? */
+export function reachedFullTime(before: DocumentData, after: DocumentData): boolean {
+  const whistle = after.clock?.phase === 'full_time' && before.clock?.phase !== 'full_time';
+  const completed = after.status === 'completed' && before.status !== 'completed';
+  return (whistle || completed) && (after.score != null || after.clock != null);
+}

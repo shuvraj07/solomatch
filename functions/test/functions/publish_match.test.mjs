@@ -75,6 +75,16 @@ describe('publishMatch', () => {
   });
   after(clearAll);
 
+  test('injured players cannot be put in the lineup', async () => {
+    await db.doc('players/amit').update({ fitness: 'injured' });
+    await seed(draft({ lineup: [{ uid: 'amit', group: 'gk' }] }));
+    await rejects(publish(), 'invalid-argument', 'Amit Karki is marked injured');
+
+    await db.doc('players/raj').update({ fitness: 'injured' });
+    await seed(draft({ organizerPlaying: true }));
+    await rejects(publish(), 'invalid-argument', "You're marked injured");
+  });
+
   test('plain publish: open match, no roster, draft removed', async () => {
     await seed(draft());
     const r = await publish();

@@ -5,6 +5,9 @@ import 'package:material_ui/material_ui.dart';
 import '../../../app/router/app_routes.dart';
 import '../../../app/session/session_provider.dart';
 import '../../../app/session/sign_out.dart';
+import '../../../core/widgets/run_with_feedback.dart';
+import '../../../shared/models/fitness.dart';
+import '../data/profile_providers.dart';
 import 'widgets/player_profile_view.dart';
 
 /// The signed-in player's own profile. Full editing, reviews and settings
@@ -44,6 +47,15 @@ class ProfileScreen extends ConsumerWidget {
           : PlayerProfileView(
               profile: profile,
               isMe: true,
+              onFitnessChanged: (f) => runWithFeedback(
+                context,
+                () => ref
+                    .read(profileRepositoryProvider)
+                    .updateProfile(profile.copyWith(fitness: f)),
+                success: f == Fitness.injured
+                    ? 'Get well soon! Organizers can’t pick you until you’re fit.'
+                    : 'Fitness updated: ${f.label}',
+              ),
               actions: [
                 FilledButton.tonalIcon(
                   key: const Key('myMatchesButton'),
