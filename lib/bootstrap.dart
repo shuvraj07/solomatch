@@ -13,6 +13,7 @@ import 'package:material_ui/material_ui.dart';
 import 'app/app.dart';
 import 'app/config/env.dart';
 import 'app/firebase_setup_required_app.dart';
+import 'firebase_options.dart';
 
 /// Initializes platform services, then runs the app.
 ///
@@ -22,7 +23,9 @@ Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } on Object catch (error) {
     debugPrint('Firebase initialization failed: $error');
     runApp(FirebaseSetupRequiredApp(error: error));

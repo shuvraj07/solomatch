@@ -7,11 +7,45 @@
     "rules": "storage.rules"
   },
   "emulators": {
-    "auth": { "port": 9099, "host": "0.0.0.0" },
-    "firestore": { "port": 8080, "host": "0.0.0.0" },
-    "functions": { "port": 5001, "host": "0.0.0.0" },
-    "storage": { "port": 9199, "host": "0.0.0.0" },
-    "ui": { "enabled": true, "port": 4000 },
+    "auth": {
+      "port": 9099,
+      "host": "0.0.0.0"
+    },
+    "firestore": {
+      "port": 8080,
+      "host": "0.0.0.0"
+    },
+    "functions": {
+      "port": 5001,
+      "host": "0.0.0.0"
+    },
+    "storage": {
+      "port": 9199,
+      "host": "0.0.0.0"
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
     "singleProjectMode": true
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "solomatch-26e58",
+          "appId": "1:941813228797:android:a495ae4cb7b356bb660a94",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "solomatch-26e58",
+          "configurations": {
+            "android": "1:941813228797:android:a495ae4cb7b356bb660a94"
+          }
+        }
+      }
+    }
   }
 }

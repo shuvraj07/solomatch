@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "941813228797",
+    "project_id": "solomatch-26e58",
+    "storage_bucket": "solomatch-26e58.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941813228797:android:a495ae4cb7b356bb660a94",
+        "android_client_info": {
+          "package_name": "com.solomatch.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDh3_0ZLmacoCd2vcAtgu6VobUfyn6YPQo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
