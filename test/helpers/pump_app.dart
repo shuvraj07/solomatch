@@ -14,6 +14,7 @@ import 'package:solomatch/features/profile/data/profile_providers.dart';
 import 'package:solomatch/features/reviews/data/review_providers.dart';
 import 'package:solomatch/features/safety/data/safety_providers.dart';
 import 'package:solomatch/features/settings/data/settings_providers.dart';
+import 'package:solomatch/features/venues/data/venue_providers.dart';
 
 import '../fakes/fake_auth_repository.dart';
 import '../fakes/fake_chat_repository.dart';
@@ -25,6 +26,7 @@ import '../fakes/fake_notifications.dart';
 import '../fakes/fake_profile_repository.dart';
 import '../fakes/fake_review_repository.dart';
 import '../fakes/fake_settings_safety.dart';
+import '../fakes/fake_venue_repository.dart';
 
 /// Pumps the whole app with in-memory repositories on a typical phone
 /// screen (360 × 800 logical pixels).
@@ -42,6 +44,7 @@ Future<void> pumpApp(
   FakeReviewRepository? reviews,
   FakeSettingsRepository? settings,
   FakeSafetyRepository? safety,
+  FakeVenueRepository? venues,
   DateTime? now,
 }) async {
   final matchRepo = matches ?? FakeMatchRepository();
@@ -80,6 +83,9 @@ Future<void> pumpApp(
         ),
         safetyRepositoryProvider.overrideWithValue(
           safety ?? FakeSafetyRepository(),
+        ),
+        venueRepositoryProvider.overrideWithValue(
+          venues ?? FakeVenueRepository(),
         ),
         if (now != null) clockProvider.overrideWithValue(() => now),
       ],

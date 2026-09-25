@@ -14,7 +14,7 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
 
 final notificationPrefsProvider = StreamProvider.autoDispose<NotificationPrefs>(
   (ref) {
-    final uid = ref.watch(currentProfileProvider)?.uid;
+    final uid = ref.watch(currentUidProvider);
     if (uid == null) return const Stream.empty();
     return ref.watch(settingsRepositoryProvider).watchNotificationPrefs(uid);
   },

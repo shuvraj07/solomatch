@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Venue {
 
- String get name; String get address; String get city; String? get placeId; double? get lat; double? get lng;
+ String get name; String get address; String get city; String? get placeId; double? get lat; double? get lng;/// Set when the match is at a SoloMatch venue (`venues/{venueId}`),
+/// i.e. it was booked through the app. Players can then rate the venue.
+ String? get venueId;
 /// Create a copy of Venue
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +29,20 @@ $VenueCopyWith<Venue> get copyWith => _$VenueCopyWithImpl<Venue>(this as Venue, 
 @override
 bool operator ==(Object other) {
   final _this = this as Venue;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Venue&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.city, _this.city) || other.city == _this.city)&&(identical(other.placeId, _this.placeId) || other.placeId == _this.placeId)&&(identical(other.lat, _this.lat) || other.lat == _this.lat)&&(identical(other.lng, _this.lng) || other.lng == _this.lng));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Venue&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.address, _this.address) || other.address == _this.address)&&(identical(other.city, _this.city) || other.city == _this.city)&&(identical(other.placeId, _this.placeId) || other.placeId == _this.placeId)&&(identical(other.lat, _this.lat) || other.lat == _this.lat)&&(identical(other.lng, _this.lng) || other.lng == _this.lng)&&(identical(other.venueId, _this.venueId) || other.venueId == _this.venueId));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Venue;
-  return Object.hash(runtimeType,_this.name,_this.address,_this.city,_this.placeId,_this.lat,_this.lng);
+  return Object.hash(runtimeType,_this.name,_this.address,_this.city,_this.placeId,_this.lat,_this.lng,_this.venueId);
 }
 
 @override
 String toString() {
   final _this = this as Venue;
-  return 'Venue(name: ${_this.name}, address: ${_this.address}, city: ${_this.city}, placeId: ${_this.placeId}, lat: ${_this.lat}, lng: ${_this.lng})';
+  return 'Venue(name: ${_this.name}, address: ${_this.address}, city: ${_this.city}, placeId: ${_this.placeId}, lat: ${_this.lat}, lng: ${_this.lng}, venueId: ${_this.venueId})';
 }
 
 
@@ -51,7 +53,7 @@ abstract mixin class $VenueCopyWith<$Res>  {
   factory $VenueCopyWith(Venue value, $Res Function(Venue) _then) = _$VenueCopyWithImpl;
 @useResult
 $Res call({
- String name, String address, String city, String? placeId, double? lat, double? lng
+ String name, String address, String city, String? placeId, double? lat, double? lng, String? venueId
 });
 
 
@@ -68,7 +70,7 @@ class _$VenueCopyWithImpl<$Res>
 
 /// Create a copy of Venue
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? address = null,Object? city = null,Object? placeId = freezed,Object? lat = freezed,Object? lng = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? address = null,Object? city = null,Object? placeId = freezed,Object? lat = freezed,Object? lng = freezed,Object? venueId = freezed,}) {
   return _then(Venue(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
@@ -76,7 +78,8 @@ as String,city: null == city ? _self.city : city // ignore: cast_nullable_to_non
 as String,placeId: freezed == placeId ? _self.placeId : placeId // ignore: cast_nullable_to_non_nullable
 as String?,lat: freezed == lat ? _self.lat : lat // ignore: cast_nullable_to_non_nullable
 as double?,lng: freezed == lng ? _self.lng : lng // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,venueId: freezed == venueId ? _self.venueId : venueId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -161,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String address,  String city,  String? placeId,  double? lat,  double? lng)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String address,  String city,  String? placeId,  double? lat,  double? lng,  String? venueId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Venue() when $default != null:
-return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_that.lng);case _:
+return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_that.lng,_that.venueId);case _:
   return orElse();
 
 }
@@ -182,10 +185,10 @@ return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String address,  String city,  String? placeId,  double? lat,  double? lng)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String address,  String city,  String? placeId,  double? lat,  double? lng,  String? venueId)  $default,) {final _that = this;
 switch (_that) {
 case _Venue():
-return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_that.lng);case _:
+return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_that.lng,_that.venueId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +205,10 @@ return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String address,  String city,  String? placeId,  double? lat,  double? lng)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String address,  String city,  String? placeId,  double? lat,  double? lng,  String? venueId)?  $default,) {final _that = this;
 switch (_that) {
 case _Venue() when $default != null:
-return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_that.lng);case _:
+return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_that.lng,_that.venueId);case _:
   return null;
 
 }
@@ -217,7 +220,7 @@ return $default(_that.name,_that.address,_that.city,_that.placeId,_that.lat,_tha
 
 
 class _Venue extends Venue {
-  const _Venue({required this.name, this.address = '', required this.city, this.placeId, this.lat, this.lng}): super._();
+  const _Venue({required this.name, this.address = '', required this.city, this.placeId, this.lat, this.lng, this.venueId}): super._();
   
 
 @override final  String name;
@@ -226,6 +229,9 @@ class _Venue extends Venue {
 @override final  String? placeId;
 @override final  double? lat;
 @override final  double? lng;
+/// Set when the match is at a SoloMatch venue (`venues/{venueId}`),
+/// i.e. it was booked through the app. Players can then rate the venue.
+@override final  String? venueId;
 
 /// Create a copy of Venue
 /// with the given fields replaced by the non-null parameter values.
@@ -237,18 +243,18 @@ _$VenueCopyWith<_Venue> get copyWith => __$VenueCopyWithImpl<_Venue>(this, _$ide
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Venue&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.city, city) || other.city == city)&&(identical(other.placeId, placeId) || other.placeId == placeId)&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lng, lng) || other.lng == lng));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Venue&&(identical(other.name, name) || other.name == name)&&(identical(other.address, address) || other.address == address)&&(identical(other.city, city) || other.city == city)&&(identical(other.placeId, placeId) || other.placeId == placeId)&&(identical(other.lat, lat) || other.lat == lat)&&(identical(other.lng, lng) || other.lng == lng)&&(identical(other.venueId, venueId) || other.venueId == venueId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,address,city,placeId,lat,lng);
+    return Object.hash(runtimeType,name,address,city,placeId,lat,lng,venueId);
 }
 
 @override
 String toString() {
-    return 'Venue(name: $name, address: $address, city: $city, placeId: $placeId, lat: $lat, lng: $lng)';
+    return 'Venue(name: $name, address: $address, city: $city, placeId: $placeId, lat: $lat, lng: $lng, venueId: $venueId)';
 }
 
 
@@ -259,7 +265,7 @@ abstract mixin class _$VenueCopyWith<$Res> implements $VenueCopyWith<$Res> {
   factory _$VenueCopyWith(_Venue value, $Res Function(_Venue) _then) = __$VenueCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String address, String city, String? placeId, double? lat, double? lng
+ String name, String address, String city, String? placeId, double? lat, double? lng, String? venueId
 });
 
 
@@ -276,7 +282,7 @@ class __$VenueCopyWithImpl<$Res>
 
 /// Create a copy of Venue
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? address = null,Object? city = null,Object? placeId = freezed,Object? lat = freezed,Object? lng = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? address = null,Object? city = null,Object? placeId = freezed,Object? lat = freezed,Object? lng = freezed,Object? venueId = freezed,}) {
   return _then(_Venue(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
@@ -284,7 +290,8 @@ as String,city: null == city ? _self.city : city // ignore: cast_nullable_to_non
 as String,placeId: freezed == placeId ? _self.placeId : placeId // ignore: cast_nullable_to_non_nullable
 as String?,lat: freezed == lat ? _self.lat : lat // ignore: cast_nullable_to_non_nullable
 as double?,lng: freezed == lng ? _self.lng : lng // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,venueId: freezed == venueId ? _self.venueId : venueId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

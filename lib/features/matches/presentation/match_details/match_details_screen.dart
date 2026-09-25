@@ -20,6 +20,7 @@ import '../../../match_requests/presentation/request_to_join_sheet.dart';
 import '../../../reviews/presentation/widgets/rate_players_card.dart';
 import '../../../safety/domain/safety_repository.dart';
 import '../../../safety/presentation/report_sheet.dart';
+import '../../../venues/presentation/rate_venue_card.dart';
 import '../../data/match_providers.dart';
 import '../../domain/football_match.dart';
 import '../../domain/match_action.dart';
@@ -326,11 +327,47 @@ class _Loaded extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          info(
-            Icons.place_rounded,
-            m.venue.shortLabel,
-            '${m.venue.city} · ${m.isIndoor ? 'Indoor' : 'Outdoor'}',
-          ),
+          if (m.booking case (
+            venueId: _,
+            slotId: _,
+            status: BookingStatus.cancelledByVenue,
+            :final reason,
+          ))
+            Card(
+              key: const Key('venueCancelledBanner'),
+              color: theme.colorScheme.errorContainer,
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Text(
+                  '⚠️ ${m.venue.name} cancelled this booking'
+                  '${reason.isEmpty ? '' : ': “$reason”'}. '
+                  '${m.isOrganizer(viewerUid) ? 'Contact the venue or cancel the match.' : 'The organizer has been told.'}',
+                  style: TextStyle(color: theme.colorScheme.onErrorContainer),
+                ),
+              ),
+            ),
+          switch (m.venue.venueId) {
+            final venueId? => ListTile(
+              key: const Key('venueLink'),
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                Icons.stadium_rounded,
+                color: theme.colorScheme.primary,
+              ),
+              title: Text(m.venue.shortLabel),
+              subtitle: Text(
+                '${m.venue.city} · ${m.isIndoor ? 'Indoor' : 'Outdoor'}'
+                '${m.booking?.status == BookingStatus.confirmed ? ' · ✅ Booked' : ''}',
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.push(AppRoutes.venueDetails(venueId)),
+            ),
+            null => info(
+              Icons.place_rounded,
+              m.venue.shortLabel,
+              '${m.venue.city} · ${m.isIndoor ? 'Indoor' : 'Outdoor'}',
+            ),
+          },
           info(
             Icons.event_rounded,
             Formatters.longDate(m.startAt),
@@ -354,6 +391,12 @@ class _Loaded extends StatelessWidget {
             MotmCard(match: m, roster: roster, viewerUid: viewerUid, now: now),
             const SizedBox(height: AppSpacing.md),
             RatePlayersCard(match: m, roster: roster, now: now),
+            RateVenueCard(
+              match: m,
+              roster: roster,
+              viewerUid: viewerUid,
+              now: now,
+            ),
             if (m.isOrganizer(viewerUid) && m.isPostMatchOpen(now))
               Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.md),

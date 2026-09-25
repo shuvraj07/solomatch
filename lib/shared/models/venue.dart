@@ -13,6 +13,10 @@ abstract class Venue with _$Venue {
     String? placeId,
     double? lat,
     double? lng,
+
+    /// Set when the match is at a SoloMatch venue (`venues/{venueId}`),
+    /// i.e. it was booked through the app. Players can then rate the venue.
+    String? venueId,
   }) = _Venue;
 
   const Venue._();

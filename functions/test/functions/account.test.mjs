@@ -67,7 +67,7 @@ describe('deleteAccount', () => {
 
   test('leaves, cancels, withdraws, anonymizes and deletes personal data', async () => {
     const summary = await deleteAccount(deps(), 'amit');
-    assert.deepEqual(summary, { leftMatches: 1, cancelledMatches: 1 });
+    assert.deepEqual(summary, { leftMatches: 1, cancelledMatches: 1, cancelledBookings: 0 });
 
     const playing = await data('matches/playing');
     assert.equal(playing.currentPlayers, 1);

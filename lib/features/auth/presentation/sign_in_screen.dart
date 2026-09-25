@@ -3,11 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../app/router/app_routes.dart';
+import '../../../app/session/account_mode.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/error_snackbar.dart';
 import '../../../core/widgets/loading_button.dart';
 import 'auth_controller.dart';
+import 'widgets/account_mode_toggle.dart';
 import 'widgets/auth_scaffold.dart';
 import 'widgets/auth_switch_prompt.dart';
 import 'widgets/password_field.dart';
@@ -45,16 +47,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       if (next case AsyncError(:final error)) showErrorSnackBar(context, error);
     });
     final loading = ref.watch(authControllerProvider).isLoading;
+    final owner = ref.watch(accountModeProvider) == AccountMode.owner;
 
     return AuthScaffold(
       title: 'Welcome back',
-      subtitle: 'Sign in to find your next match.',
+      subtitle: owner
+          ? 'Sign in to manage your venue and bookings.'
+          : 'Sign in to find your next match.',
       child: Form(
         key: _formKey,
         child: AutofillGroup(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const AccountModeToggle(),
               TextFormField(
                 key: const Key('emailField'),
                 controller: _email,

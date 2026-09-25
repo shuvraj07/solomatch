@@ -47,6 +47,7 @@ export async function deliver(
         title: n.title,
         body: n.body,
         matchId: n.matchId,
+        ...(n.route ? { route: n.route } : {}),
         read: false,
         createdAt: FieldValue.serverTimestamp(),
       });
@@ -58,7 +59,7 @@ export async function deliver(
     await pushToUser(db, push, n.uid, { title: n.title, body: n.body }, {
       type: n.type,
       matchId: n.matchId,
-      route: `/matches/${n.matchId}`,
+      route: n.route ?? `/matches/${n.matchId}`,
       notificationId: inbox.id,
     });
     sent++;
@@ -85,6 +86,7 @@ export function categoryOf(type: string): NotificationCategory {
     case 'chat_message':
       return 'chat';
     case 'new_review':
+    case 'new_venue_rating':
     case 'motm_vote':
     case 'motm_won':
       return 'reviews';

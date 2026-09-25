@@ -45,4 +45,23 @@ abstract final class AppRoutes {
 
   static const matchReportPattern = '/matches/:matchId/report';
   static String matchReport(String matchId) => '/matches/$matchId/report';
+
+  // ---------- venues (player side) ----------
+
+  static const venues = '/venues';
+
+  /// Venue list in "pick a slot" mode (from the create-match flow); pops
+  /// the chosen VenueSlot.
+  static const venuePicker = '/venues?pick=1';
+
+  static const venueDetailsPattern = '/venues/:venueId';
+  static String venueDetails(String venueId, {bool pick = false}) =>
+      '/venues/$venueId${pick ? '?pick=1' : ''}';
+
+  // ---------- venue owner app ----------
+
+  static const owner = '/owner';
+  static const ownerVenue = '/owner/venue';
+  static const ownerAccount = '/owner/account';
+  static const ownerEditVenue = '/owner/edit-venue';
 }

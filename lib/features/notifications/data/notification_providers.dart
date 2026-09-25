@@ -18,7 +18,7 @@ final pushMessagingProvider = Provider<PushMessaging>(
 
 /// The signed-in user's inbox, newest first.
 final inboxProvider = StreamProvider.autoDispose<List<AppNotification>>((ref) {
-  final uid = ref.watch(currentProfileProvider)?.uid;
+  final uid = ref.watch(currentUidProvider);
   if (uid == null) return Stream.value(const []);
   return ref.watch(notificationRepositoryProvider).watchInbox(uid);
 });

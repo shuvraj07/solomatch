@@ -33,6 +33,9 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider);
+    final uid = ref.watch(currentUidProvider);
+    // Venue owners don't have a football profile.
+    final isOwner = ref.watch(currentOwnerProvider) != null;
     final user = ref.watch(authRepositoryProvider).currentUser;
     final prefs = ref.watch(notificationPrefsProvider).value;
     final theme = Theme.of(context);
@@ -62,11 +65,12 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Email'),
             subtitle: Text(user?.email ?? '—'),
           ),
-          ListTile(
-            leading: const Icon(Icons.edit_rounded),
-            title: const Text('Edit football profile'),
-            onTap: () => context.push(AppRoutes.editProfile),
-          ),
+          if (profile != null)
+            ListTile(
+              leading: const Icon(Icons.edit_rounded),
+              title: const Text('Edit football profile'),
+              onTap: () => context.push(AppRoutes.editProfile),
+            ),
           if (user?.email case final email?)
             ListTile(
               leading: const Icon(Icons.lock_reset_rounded),
@@ -82,20 +86,33 @@ class SettingsScreen extends ConsumerWidget {
             ),
           section('Notifications'),
           for (final c in NotificationCategory.values)
-            SwitchListTile(
-              key: Key('pref_${c.name}'),
-              title: Text(c.label),
-              subtitle: Text(c.description),
-              value: prefs?[c] ?? true,
-              onChanged: profile == null
-                  ? null
-                  : (v) => runWithFeedback(
-                      context,
-                      () => ref
-                          .read(settingsRepositoryProvider)
-                          .setNotificationPref(profile.uid, c, v),
-                    ),
-            ),
+            if (!isOwner ||
+                c == NotificationCategory.matches ||
+                c == NotificationCategory.reviews)
+              SwitchListTile(
+                key: Key('pref_${c.name}'),
+                title: Text(switch (c) {
+                  NotificationCategory.matches when isOwner => 'Bookings',
+                  NotificationCategory.reviews when isOwner => 'Venue ratings',
+                  _ => c.label,
+                }),
+                subtitle: Text(switch (c) {
+                  NotificationCategory.matches when isOwner =>
+                    'New and cancelled bookings',
+                  NotificationCategory.reviews when isOwner =>
+                    'When players rate your venue',
+                  _ => c.description,
+                }),
+                value: prefs?[c] ?? true,
+                onChanged: uid == null
+                    ? null
+                    : (v) => runWithFeedback(
+                        context,
+                        () => ref
+                            .read(settingsRepositoryProvider)
+                            .setNotificationPref(uid, c, v),
+                      ),
+              ),
           section('Privacy & safety'),
           if (profile != null)
             SwitchListTile(
@@ -110,12 +127,13 @@ class SettingsScreen extends ConsumerWidget {
                     .updateProfile(profile.copyWith(hideCity: v)),
               ),
             ),
-          ListTile(
-            key: const Key('blockedPlayersTile'),
-            leading: const Icon(Icons.block_rounded),
-            title: const Text('Blocked players'),
-            onTap: () => context.push(AppRoutes.blockedPlayers),
-          ),
+          if (profile != null)
+            ListTile(
+              key: const Key('blockedPlayersTile'),
+              leading: const Icon(Icons.block_rounded),
+              title: const Text('Blocked players'),
+              onTap: () => context.push(AppRoutes.blockedPlayers),
+            ),
           for (final page in InfoPage.values)
             ListTile(
               leading: Icon(switch (page) {
@@ -173,6 +191,7 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
     final ready = _confirm.text.trim().toUpperCase() == 'DELETE';
     return AlertDialog(
       title: const Text('Delete your account?'),
+      scrollable: true,
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,8 +199,9 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
           const Text(
             'This permanently deletes your profile, photos and settings. '
             'You’ll leave upcoming matches, and matches you organize will be '
-            'cancelled. Past matches, messages and ratings you gave stay, '
-            'shown as “Deleted player”. This can’t be undone.',
+            'cancelled. Venue owners: your venue is removed and upcoming '
+            'bookings are cancelled. Past matches, messages and ratings you '
+            'gave stay, shown as “Deleted player”. This can’t be undone.',
           ),
           const SizedBox(height: AppSpacing.md),
           TextField(

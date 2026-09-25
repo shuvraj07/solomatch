@@ -11,6 +11,31 @@ import 'position_slots.dart';
 
 part 'football_match.freezed.dart';
 
+/// State of a venue booking made with the match.
+enum BookingStatus {
+  confirmed,
+
+  /// The organizer cancelled the match; the slot was given back.
+  released,
+
+  /// The venue cancelled; the organizer needs another venue.
+  cancelledByVenue;
+
+  static BookingStatus fromWire(String s) => switch (s) {
+    'cancelled_by_venue' => cancelledByVenue,
+    'released' => released,
+    _ => confirmed,
+  };
+}
+
+/// The venue slot booked for a match (`matches/{id}.booking`).
+typedef MatchBooking = ({
+  String venueId,
+  String slotId,
+  BookingStatus status,
+  String reason,
+});
+
 /// A published match (Firestore `matches/{id}`).
 ///
 /// Named FootballMatch because `Match` is a dart:core type.
@@ -49,6 +74,9 @@ abstract class FootballMatch with _$FootballMatch {
 
     /// Null until voting closes.
     MotmResult? motm,
+
+    /// Set when the organizer booked a venue slot through the app.
+    MatchBooking? booking,
   }) = _FootballMatch;
 
   const FootballMatch._();

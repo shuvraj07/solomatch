@@ -8,6 +8,8 @@ import '../../../../app/session/session_provider.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/widgets/error_snackbar.dart';
 import '../../../../core/widgets/loading_button.dart';
+import '../../../venues/domain/draft_booking.dart';
+import '../../../venues/domain/venue_models.dart';
 import '../../domain/create_match_step.dart';
 import '../../domain/match_draft.dart';
 import '../../domain/match_validator.dart';
@@ -108,6 +110,14 @@ class CreateMatchFlowScreen extends ConsumerWidget {
         draft: draft,
         onChanged: controller.update,
         defaultCity: ref.watch(currentProfileProvider)?.city ?? '',
+        onBookVenue: () async {
+          final picked = await context.push<(VenueProfile, VenueSlot)>(
+            AppRoutes.venuePicker,
+          );
+          if (picked case (final venue, final slot)) {
+            controller.update((d) => d.bookSlot(venue, slot));
+          }
+        },
       ),
       CreateMatchStep.location => LocationStep(draft: draft),
       CreateMatchStep.date => DateStep(

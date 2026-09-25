@@ -24,6 +24,10 @@ enum CreateMatchStep {
 
   bool get isFirst => index == 0;
 
+  /// Filled in by a booked venue slot, so skipped when the draft has one.
+  bool get setByBooking =>
+      this == location || this == date || this == startTime || this == endTime;
+
   bool get isLast => this == review;
 
   CreateMatchStep? get next => isLast ? null : values[index + 1];

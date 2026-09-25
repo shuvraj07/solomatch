@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../features/notifications/data/notification_providers.dart';
 import '../../features/notifications/domain/app_notification.dart';
 import '../router/app_router.dart';
+import '../router/app_routes.dart';
 import '../session/session_provider.dart';
 import '../session/session_state.dart';
 
@@ -56,7 +57,7 @@ class _PushCoordinatorState extends ConsumerState<PushCoordinator> {
   }
 
   Future<void> _onSession(SessionState? session) async {
-    if (session is! Ready) {
+    if (session is! InApp) {
       _registeredUid = null;
       await _tokenRefresh?.cancel();
       _tokenRefresh = null;
@@ -93,9 +94,15 @@ class _PushCoordinatorState extends ConsumerState<PushCoordinator> {
 
   void _openPending() {
     final route = _pendingRoute;
-    if (route == null || ref.read(sessionProvider).value is! Ready) return;
+    if (route == null || ref.read(sessionProvider).value is! InApp) return;
     _pendingRoute = null;
-    unawaited(ref.read(appRouterProvider).push(route));
+    final router = ref.read(appRouterProvider);
+    // Owner tabs are shell roots: switch to them rather than stacking.
+    if (route.startsWith(AppRoutes.owner)) {
+      router.go(route);
+    } else {
+      unawaited(router.push(route));
+    }
   }
 
   void _showInApp(PushMessage message) {

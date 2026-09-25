@@ -69,6 +69,8 @@ service cloud.firestore {
         && incoming().keys().hasOnly(editableProfileKeys().concat(['username', 'createdAt']))
         && validProfile(incoming())
         && incoming().createdAt == request.time
+        // An account is either a player or a venue owner.
+        && !exists(/databases/$(database)/documents/owners/$(uid))
         // The username claim must be written in the same transaction.
         && getAfter(/databases/$(database)/documents/usernames/$(incoming().username)).data.uid == uid;
 
@@ -424,6 +426,150 @@ service cloud.firestore {
         && incoming().createdAt == request.time;
       allow read, update: if signedIn() && request.auth.token.admin == true;
       allow delete: if false;
+    }
+
+    // ---------- venue owners ----------
+    // owners/{uid}: the business contact. An account is either a player or
+    // a venue owner. Each owner has one venue: venues/{ownerUid}.
+
+    function isOwner() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/owners/$(request.auth.uid));
+    }
+
+    function validPhone(p) {
+      return p is string && p.matches('^[+0-9 -]{7,20}$');
+    }
+
+    function validOwner(d) {
+      return d.name is string && d.name.size() >= 2 && d.name.size() <= 60
+        && validPhone(d.phone);
+    }
+
+    match /owners/{uid} {
+      allow read: if signedIn();
+      allow create: if isUser(uid)
+        && incoming().keys().hasOnly(['name', 'phone', 'createdAt'])
+        && validOwner(incoming())
+        && incoming().createdAt == request.time
+        && !exists(/databases/$(database)/documents/players/$(uid));
+      allow update: if isUser(uid)
+        && changedKeys().hasOnly(['name', 'phone'])
+        && validOwner(incoming());
+      allow delete: if false;
+    }
+
+    // ---------- venues ----------
+
+    function amenities() {
+      return ['parking', 'changing_room', 'showers', 'drinking_water',
+              'floodlights', 'cafe', 'bibs', 'balls'];
+    }
+
+    function editableVenueKeys() {
+      return ['name', 'searchName', 'address', 'city', 'phone', 'description',
+              'isIndoor', 'formats', 'pricePerHour', 'amenities', 'photos',
+              'lat', 'lng', 'updatedAt'];
+    }
+
+    function validVenueProfile(d) {
+      return d.name is string && d.name.size() >= 2 && d.name.size() <= 80
+        && d.searchName == d.name.lower()
+        && d.address is string && d.address.size() <= 120
+        && d.city is string && d.city.size() >= 1 && d.city.size() <= 60
+        && validPhone(d.phone)
+        && d.description is string && d.description.size() <= 1000
+        && d.isIndoor is bool
+        && d.formats is list && d.formats.size() >= 1 && d.formats.hasOnly(matchFormats())
+        && d.pricePerHour is int && d.pricePerHour >= 0 && d.pricePerHour <= 100000
+        && d.amenities is list && d.amenities.hasOnly(amenities())
+        && d.photos is list && d.photos.size() <= 5
+        && (d.lat == null || (d.lat is number && d.lat >= -90 && d.lat <= 90))
+        && (d.lng == null || (d.lng is number && d.lng >= -180 && d.lng <= 180))
+        && d.updatedAt == request.time;
+    }
+
+    match /venues/{venueId} {
+      allow read: if signedIn();
+
+      // `rating` is server-only (averages from venue ratings).
+      allow create: if isUser(venueId)
+        && isOwner()
+        && incoming().keys().hasOnly(editableVenueKeys().concat(['ownerId', 'createdAt']))
+        && incoming().ownerId == venueId
+        && incoming().createdAt == request.time
+        && validVenueProfile(incoming());
+      allow update: if isUser(venueId)
+        && changedKeys().hasOnly(editableVenueKeys())
+        && validVenueProfile(incoming());
+      allow delete: if false;
+
+      // ----- slots: venues/{venueId}/slots/{slotId} -----
+      // The owner lists and removes free slots. Booking (free → booked)
+      // happens only in publishDraft; cancelling in Cloud Functions.
+
+      function validFreeSlot(d) {
+        return d.keys().hasOnly(['startAt', 'endAt', 'price', 'status', 'createdAt'])
+          && d.status == 'free'
+          && d.startAt is timestamp && d.startAt > request.time
+          && d.endAt is timestamp
+          && d.endAt >= d.startAt + duration.value(30, 'm')
+          && d.endAt <= d.startAt + duration.value(6, 'h')
+          && d.price is int && d.price >= 0 && d.price <= 100000;
+      }
+
+      match /slots/{slotId} {
+        allow read: if signedIn();
+        allow create: if isUser(venueId)
+          && validFreeSlot(incoming())
+          && incoming().createdAt == request.time;
+        allow update: if isUser(venueId)
+          && resource.data.status == 'free'
+          && changedKeys().hasOnly(['startAt', 'endAt', 'price'])
+          && validFreeSlot(incoming());
+        allow delete: if isUser(venueId) && resource.data.status == 'free';
+      }
+
+      // ----- ratings: venues/{venueId}/ratings/{matchId}_{uid} -----
+      // Players who were at a completed match there, within 14 days, once
+      // per match. Averages are kept by onVenueRatingCreated.
+
+      function score(n) {
+        return n is int && n >= 1 && n <= 5;
+      }
+
+      match /ratings/{ratingId} {
+        function ratedMatch() {
+          return get(/databases/$(database)/documents/matches/$(incoming().matchId)).data;
+        }
+
+        function validRating() {
+          let m = ratedMatch();
+          let me = get(/databases/$(database)/documents/players/$(request.auth.uid)).data;
+          return incoming().keys().hasOnly(['matchId', 'reviewerId', 'overall', 'pitch',
+                                            'facilities', 'value', 'comment', 'reviewer',
+                                            'matchTitle', 'createdAt'])
+            && incoming().reviewerId == request.auth.uid
+            && ratingId == incoming().matchId + '_' + request.auth.uid
+            && score(incoming().overall) && score(incoming().pitch)
+            && score(incoming().facilities) && score(incoming().value)
+            && incoming().comment is string && incoming().comment.size() <= 300
+            && incoming().reviewer.keys().hasOnly(['name', 'photoUrl'])
+            && incoming().reviewer.name == me.fullName
+            && incoming().reviewer.photoUrl == me.photoUrl
+            && m.venue.get('venueId', null) == venueId
+            && m.status == 'completed'
+            && request.time < m.endAt + duration.value(14, 'd')
+            && incoming().matchTitle == m.title
+            && (m.organizer.uid == request.auth.uid
+                || exists(/databases/$(database)/documents/matches/$(incoming().matchId)/roster/$(request.auth.uid)))
+            && incoming().createdAt == request.time;
+        }
+
+        allow read: if signedIn();
+        allow create: if signedIn() && validRating();
+        allow update, delete: if false;
+      }
     }
 
     // ---------- match drafts (organizer-private) ----------

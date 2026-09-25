@@ -24,6 +24,15 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/safety/presentation/blocked_players_screen.dart';
 import '../../features/settings/presentation/info_pages.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/venues/presentation/owner/edit_venue_screen.dart';
+import '../../features/venues/presentation/owner/owner_account_screen.dart';
+import '../../features/venues/presentation/owner/owner_schedule_screen.dart';
+import '../../features/venues/presentation/owner/owner_setup_screen.dart';
+import '../../features/venues/presentation/owner/owner_shell.dart';
+import '../../features/venues/presentation/owner/owner_venue_screen.dart';
+import '../../features/venues/presentation/venue_details_screen.dart';
+import '../../features/venues/presentation/venues_screen.dart';
+import '../session/account_mode.dart';
 import '../session/session_provider.dart';
 import '../session/splash_screen.dart';
 import '../shell/main_shell.dart';
@@ -61,7 +70,59 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.onboarding,
-        builder: (context, state) => const ProfileSetupScreen(),
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) =>
+              ref.watch(accountModeProvider) == AccountMode.owner
+              ? const OwnerSetupScreen()
+              : const ProfileSetupScreen(),
+        ),
+      ),
+      // Venue owner app.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            OwnerShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.owner,
+                builder: (context, state) => const OwnerScheduleScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.ownerVenue,
+                builder: (context, state) => const OwnerVenueScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.ownerAccount,
+                builder: (context, state) => const OwnerAccountScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.ownerEditVenue,
+        builder: (context, state) => const EditVenueScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.venues,
+        builder: (context, state) =>
+            VenuesScreen(pick: state.uri.queryParameters['pick'] == '1'),
+      ),
+      GoRoute(
+        path: AppRoutes.venueDetailsPattern,
+        builder: (context, state) => VenueDetailsScreen(
+          venueId: state.pathParameters['venueId']!,
+          pick: state.uri.queryParameters['pick'] == '1',
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

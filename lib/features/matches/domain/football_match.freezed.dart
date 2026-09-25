@@ -21,7 +21,8 @@ mixin _$FootballMatch {
  int get guestCount; PositionSlots get slots; SkillLevel get skillLevel; Price get price; bool get isIndoor; String get description; String get rules; List<String> get photos; MatchStatus get status; DateTime? get createdAt;/// Set when the match completes: end + 24 h. The report can be
 /// edited and MOTM votes cast until then.
  DateTime? get votingClosesAt; MatchReport? get report;/// Null until voting closes.
- MotmResult? get motm;
+ MotmResult? get motm;/// Set when the organizer booked a venue slot through the app.
+ MatchBooking? get booking;
 /// Create a copy of FootballMatch
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -33,20 +34,20 @@ $FootballMatchCopyWith<FootballMatch> get copyWith => _$FootballMatchCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as FootballMatch;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FootballMatch&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.organizer, _this.organizer) || other.organizer == _this.organizer)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.venue, _this.venue) || other.venue == _this.venue)&&(identical(other.startAt, _this.startAt) || other.startAt == _this.startAt)&&(identical(other.endAt, _this.endAt) || other.endAt == _this.endAt)&&(identical(other.format, _this.format) || other.format == _this.format)&&(identical(other.maxPlayers, _this.maxPlayers) || other.maxPlayers == _this.maxPlayers)&&(identical(other.currentPlayers, _this.currentPlayers) || other.currentPlayers == _this.currentPlayers)&&(identical(other.guestCount, _this.guestCount) || other.guestCount == _this.guestCount)&&(identical(other.slots, _this.slots) || other.slots == _this.slots)&&(identical(other.skillLevel, _this.skillLevel) || other.skillLevel == _this.skillLevel)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.isIndoor, _this.isIndoor) || other.isIndoor == _this.isIndoor)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.rules, _this.rules) || other.rules == _this.rules)&&const DeepCollectionEquality().equals(other.photos, _this.photos)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.votingClosesAt, _this.votingClosesAt) || other.votingClosesAt == _this.votingClosesAt)&&(identical(other.report, _this.report) || other.report == _this.report)&&(identical(other.motm, _this.motm) || other.motm == _this.motm));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FootballMatch&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.organizer, _this.organizer) || other.organizer == _this.organizer)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.venue, _this.venue) || other.venue == _this.venue)&&(identical(other.startAt, _this.startAt) || other.startAt == _this.startAt)&&(identical(other.endAt, _this.endAt) || other.endAt == _this.endAt)&&(identical(other.format, _this.format) || other.format == _this.format)&&(identical(other.maxPlayers, _this.maxPlayers) || other.maxPlayers == _this.maxPlayers)&&(identical(other.currentPlayers, _this.currentPlayers) || other.currentPlayers == _this.currentPlayers)&&(identical(other.guestCount, _this.guestCount) || other.guestCount == _this.guestCount)&&(identical(other.slots, _this.slots) || other.slots == _this.slots)&&(identical(other.skillLevel, _this.skillLevel) || other.skillLevel == _this.skillLevel)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.isIndoor, _this.isIndoor) || other.isIndoor == _this.isIndoor)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.rules, _this.rules) || other.rules == _this.rules)&&const DeepCollectionEquality().equals(other.photos, _this.photos)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.votingClosesAt, _this.votingClosesAt) || other.votingClosesAt == _this.votingClosesAt)&&(identical(other.report, _this.report) || other.report == _this.report)&&(identical(other.motm, _this.motm) || other.motm == _this.motm)&&(identical(other.booking, _this.booking) || other.booking == _this.booking));
 }
 
 
 @override
 int get hashCode {
   final _this = this as FootballMatch;
-  return Object.hashAll([runtimeType,_this.id,_this.organizer,_this.title,_this.venue,_this.startAt,_this.endAt,_this.format,_this.maxPlayers,_this.currentPlayers,_this.guestCount,_this.slots,_this.skillLevel,_this.price,_this.isIndoor,_this.description,_this.rules,const DeepCollectionEquality().hash(_this.photos),_this.status,_this.createdAt,_this.votingClosesAt,_this.report,_this.motm]);
+  return Object.hashAll([runtimeType,_this.id,_this.organizer,_this.title,_this.venue,_this.startAt,_this.endAt,_this.format,_this.maxPlayers,_this.currentPlayers,_this.guestCount,_this.slots,_this.skillLevel,_this.price,_this.isIndoor,_this.description,_this.rules,const DeepCollectionEquality().hash(_this.photos),_this.status,_this.createdAt,_this.votingClosesAt,_this.report,_this.motm,_this.booking]);
 }
 
 @override
 String toString() {
   final _this = this as FootballMatch;
-  return 'FootballMatch(id: ${_this.id}, organizer: ${_this.organizer}, title: ${_this.title}, venue: ${_this.venue}, startAt: ${_this.startAt}, endAt: ${_this.endAt}, format: ${_this.format}, maxPlayers: ${_this.maxPlayers}, currentPlayers: ${_this.currentPlayers}, guestCount: ${_this.guestCount}, slots: ${_this.slots}, skillLevel: ${_this.skillLevel}, price: ${_this.price}, isIndoor: ${_this.isIndoor}, description: ${_this.description}, rules: ${_this.rules}, photos: ${_this.photos}, status: ${_this.status}, createdAt: ${_this.createdAt}, votingClosesAt: ${_this.votingClosesAt}, report: ${_this.report}, motm: ${_this.motm})';
+  return 'FootballMatch(id: ${_this.id}, organizer: ${_this.organizer}, title: ${_this.title}, venue: ${_this.venue}, startAt: ${_this.startAt}, endAt: ${_this.endAt}, format: ${_this.format}, maxPlayers: ${_this.maxPlayers}, currentPlayers: ${_this.currentPlayers}, guestCount: ${_this.guestCount}, slots: ${_this.slots}, skillLevel: ${_this.skillLevel}, price: ${_this.price}, isIndoor: ${_this.isIndoor}, description: ${_this.description}, rules: ${_this.rules}, photos: ${_this.photos}, status: ${_this.status}, createdAt: ${_this.createdAt}, votingClosesAt: ${_this.votingClosesAt}, report: ${_this.report}, motm: ${_this.motm}, booking: ${_this.booking})';
 }
 
 
@@ -57,7 +58,7 @@ abstract mixin class $FootballMatchCopyWith<$Res>  {
   factory $FootballMatchCopyWith(FootballMatch value, $Res Function(FootballMatch) _then) = _$FootballMatchCopyWithImpl;
 @useResult
 $Res call({
- String id, UserSummary organizer, String title, Venue venue, DateTime startAt, DateTime endAt, MatchFormat format, int maxPlayers, int currentPlayers, int guestCount, PositionSlots slots, SkillLevel skillLevel, Price price, bool isIndoor, String description, String rules, List<String> photos, MatchStatus status, DateTime? createdAt, DateTime? votingClosesAt, MatchReport? report, MotmResult? motm
+ String id, UserSummary organizer, String title, Venue venue, DateTime startAt, DateTime endAt, MatchFormat format, int maxPlayers, int currentPlayers, int guestCount, PositionSlots slots, SkillLevel skillLevel, Price price, bool isIndoor, String description, String rules, List<String> photos, MatchStatus status, DateTime? createdAt, DateTime? votingClosesAt, MatchReport? report, MotmResult? motm, MatchBooking? booking
 });
 
 
@@ -74,7 +75,7 @@ class _$FootballMatchCopyWithImpl<$Res>
 
 /// Create a copy of FootballMatch
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? organizer = null,Object? title = null,Object? venue = null,Object? startAt = null,Object? endAt = null,Object? format = null,Object? maxPlayers = null,Object? currentPlayers = null,Object? guestCount = null,Object? slots = null,Object? skillLevel = null,Object? price = null,Object? isIndoor = null,Object? description = null,Object? rules = null,Object? photos = null,Object? status = null,Object? createdAt = freezed,Object? votingClosesAt = freezed,Object? report = freezed,Object? motm = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? organizer = null,Object? title = null,Object? venue = null,Object? startAt = null,Object? endAt = null,Object? format = null,Object? maxPlayers = null,Object? currentPlayers = null,Object? guestCount = null,Object? slots = null,Object? skillLevel = null,Object? price = null,Object? isIndoor = null,Object? description = null,Object? rules = null,Object? photos = null,Object? status = null,Object? createdAt = freezed,Object? votingClosesAt = freezed,Object? report = freezed,Object? motm = freezed,Object? booking = freezed,}) {
   return _then(FootballMatch(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,organizer: null == organizer ? _self.organizer : organizer // ignore: cast_nullable_to_non_nullable
@@ -98,7 +99,8 @@ as MatchStatus,createdAt: freezed == createdAt ? _self.createdAt : createdAt // 
 as DateTime?,votingClosesAt: freezed == votingClosesAt ? _self.votingClosesAt : votingClosesAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,report: freezed == report ? _self.report : report // ignore: cast_nullable_to_non_nullable
 as MatchReport?,motm: freezed == motm ? _self.motm : motm // ignore: cast_nullable_to_non_nullable
-as MotmResult?,
+as MotmResult?,booking: freezed == booking ? _self.booking : booking // ignore: cast_nullable_to_non_nullable
+as MatchBooking?,
   ));
 }
 /// Create a copy of FootballMatch
@@ -225,10 +227,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  UserSummary organizer,  String title,  Venue venue,  DateTime startAt,  DateTime endAt,  MatchFormat format,  int maxPlayers,  int currentPlayers,  int guestCount,  PositionSlots slots,  SkillLevel skillLevel,  Price price,  bool isIndoor,  String description,  String rules,  List<String> photos,  MatchStatus status,  DateTime? createdAt,  DateTime? votingClosesAt,  MatchReport? report,  MotmResult? motm)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  UserSummary organizer,  String title,  Venue venue,  DateTime startAt,  DateTime endAt,  MatchFormat format,  int maxPlayers,  int currentPlayers,  int guestCount,  PositionSlots slots,  SkillLevel skillLevel,  Price price,  bool isIndoor,  String description,  String rules,  List<String> photos,  MatchStatus status,  DateTime? createdAt,  DateTime? votingClosesAt,  MatchReport? report,  MotmResult? motm,  MatchBooking? booking)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FootballMatch() when $default != null:
-return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_that.endAt,_that.format,_that.maxPlayers,_that.currentPlayers,_that.guestCount,_that.slots,_that.skillLevel,_that.price,_that.isIndoor,_that.description,_that.rules,_that.photos,_that.status,_that.createdAt,_that.votingClosesAt,_that.report,_that.motm);case _:
+return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_that.endAt,_that.format,_that.maxPlayers,_that.currentPlayers,_that.guestCount,_that.slots,_that.skillLevel,_that.price,_that.isIndoor,_that.description,_that.rules,_that.photos,_that.status,_that.createdAt,_that.votingClosesAt,_that.report,_that.motm,_that.booking);case _:
   return orElse();
 
 }
@@ -246,10 +248,10 @@ return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  UserSummary organizer,  String title,  Venue venue,  DateTime startAt,  DateTime endAt,  MatchFormat format,  int maxPlayers,  int currentPlayers,  int guestCount,  PositionSlots slots,  SkillLevel skillLevel,  Price price,  bool isIndoor,  String description,  String rules,  List<String> photos,  MatchStatus status,  DateTime? createdAt,  DateTime? votingClosesAt,  MatchReport? report,  MotmResult? motm)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  UserSummary organizer,  String title,  Venue venue,  DateTime startAt,  DateTime endAt,  MatchFormat format,  int maxPlayers,  int currentPlayers,  int guestCount,  PositionSlots slots,  SkillLevel skillLevel,  Price price,  bool isIndoor,  String description,  String rules,  List<String> photos,  MatchStatus status,  DateTime? createdAt,  DateTime? votingClosesAt,  MatchReport? report,  MotmResult? motm,  MatchBooking? booking)  $default,) {final _that = this;
 switch (_that) {
 case _FootballMatch():
-return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_that.endAt,_that.format,_that.maxPlayers,_that.currentPlayers,_that.guestCount,_that.slots,_that.skillLevel,_that.price,_that.isIndoor,_that.description,_that.rules,_that.photos,_that.status,_that.createdAt,_that.votingClosesAt,_that.report,_that.motm);case _:
+return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_that.endAt,_that.format,_that.maxPlayers,_that.currentPlayers,_that.guestCount,_that.slots,_that.skillLevel,_that.price,_that.isIndoor,_that.description,_that.rules,_that.photos,_that.status,_that.createdAt,_that.votingClosesAt,_that.report,_that.motm,_that.booking);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -266,10 +268,10 @@ return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  UserSummary organizer,  String title,  Venue venue,  DateTime startAt,  DateTime endAt,  MatchFormat format,  int maxPlayers,  int currentPlayers,  int guestCount,  PositionSlots slots,  SkillLevel skillLevel,  Price price,  bool isIndoor,  String description,  String rules,  List<String> photos,  MatchStatus status,  DateTime? createdAt,  DateTime? votingClosesAt,  MatchReport? report,  MotmResult? motm)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  UserSummary organizer,  String title,  Venue venue,  DateTime startAt,  DateTime endAt,  MatchFormat format,  int maxPlayers,  int currentPlayers,  int guestCount,  PositionSlots slots,  SkillLevel skillLevel,  Price price,  bool isIndoor,  String description,  String rules,  List<String> photos,  MatchStatus status,  DateTime? createdAt,  DateTime? votingClosesAt,  MatchReport? report,  MotmResult? motm,  MatchBooking? booking)?  $default,) {final _that = this;
 switch (_that) {
 case _FootballMatch() when $default != null:
-return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_that.endAt,_that.format,_that.maxPlayers,_that.currentPlayers,_that.guestCount,_that.slots,_that.skillLevel,_that.price,_that.isIndoor,_that.description,_that.rules,_that.photos,_that.status,_that.createdAt,_that.votingClosesAt,_that.report,_that.motm);case _:
+return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_that.endAt,_that.format,_that.maxPlayers,_that.currentPlayers,_that.guestCount,_that.slots,_that.skillLevel,_that.price,_that.isIndoor,_that.description,_that.rules,_that.photos,_that.status,_that.createdAt,_that.votingClosesAt,_that.report,_that.motm,_that.booking);case _:
   return null;
 
 }
@@ -281,7 +283,7 @@ return $default(_that.id,_that.organizer,_that.title,_that.venue,_that.startAt,_
 
 
 class _FootballMatch extends FootballMatch {
-  const _FootballMatch({required this.id, required this.organizer, required this.title, required this.venue, required this.startAt, required this.endAt, required this.format, required this.maxPlayers, required this.currentPlayers, this.guestCount = 0, required this.slots, required this.skillLevel, required this.price, this.isIndoor = false, this.description = '', this.rules = '',  List<String> photos = const <String>[], required this.status, this.createdAt, this.votingClosesAt, this.report, this.motm}): _photos = photos,super._();
+  const _FootballMatch({required this.id, required this.organizer, required this.title, required this.venue, required this.startAt, required this.endAt, required this.format, required this.maxPlayers, required this.currentPlayers, this.guestCount = 0, required this.slots, required this.skillLevel, required this.price, this.isIndoor = false, this.description = '', this.rules = '',  List<String> photos = const <String>[], required this.status, this.createdAt, this.votingClosesAt, this.report, this.motm, this.booking}): _photos = photos,super._();
   
 
 @override final  String id;
@@ -318,6 +320,8 @@ class _FootballMatch extends FootballMatch {
 @override final  MatchReport? report;
 /// Null until voting closes.
 @override final  MotmResult? motm;
+/// Set when the organizer booked a venue slot through the app.
+@override final  MatchBooking? booking;
 
 /// Create a copy of FootballMatch
 /// with the given fields replaced by the non-null parameter values.
@@ -329,18 +333,18 @@ _$FootballMatchCopyWith<_FootballMatch> get copyWith => __$FootballMatchCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FootballMatch&&(identical(other.id, id) || other.id == id)&&(identical(other.organizer, organizer) || other.organizer == organizer)&&(identical(other.title, title) || other.title == title)&&(identical(other.venue, venue) || other.venue == venue)&&(identical(other.startAt, startAt) || other.startAt == startAt)&&(identical(other.endAt, endAt) || other.endAt == endAt)&&(identical(other.format, format) || other.format == format)&&(identical(other.maxPlayers, maxPlayers) || other.maxPlayers == maxPlayers)&&(identical(other.currentPlayers, currentPlayers) || other.currentPlayers == currentPlayers)&&(identical(other.guestCount, guestCount) || other.guestCount == guestCount)&&(identical(other.slots, slots) || other.slots == slots)&&(identical(other.skillLevel, skillLevel) || other.skillLevel == skillLevel)&&(identical(other.price, price) || other.price == price)&&(identical(other.isIndoor, isIndoor) || other.isIndoor == isIndoor)&&(identical(other.description, description) || other.description == description)&&(identical(other.rules, rules) || other.rules == rules)&&const DeepCollectionEquality().equals(other.photos, _photos)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.votingClosesAt, votingClosesAt) || other.votingClosesAt == votingClosesAt)&&(identical(other.report, report) || other.report == report)&&(identical(other.motm, motm) || other.motm == motm));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FootballMatch&&(identical(other.id, id) || other.id == id)&&(identical(other.organizer, organizer) || other.organizer == organizer)&&(identical(other.title, title) || other.title == title)&&(identical(other.venue, venue) || other.venue == venue)&&(identical(other.startAt, startAt) || other.startAt == startAt)&&(identical(other.endAt, endAt) || other.endAt == endAt)&&(identical(other.format, format) || other.format == format)&&(identical(other.maxPlayers, maxPlayers) || other.maxPlayers == maxPlayers)&&(identical(other.currentPlayers, currentPlayers) || other.currentPlayers == currentPlayers)&&(identical(other.guestCount, guestCount) || other.guestCount == guestCount)&&(identical(other.slots, slots) || other.slots == slots)&&(identical(other.skillLevel, skillLevel) || other.skillLevel == skillLevel)&&(identical(other.price, price) || other.price == price)&&(identical(other.isIndoor, isIndoor) || other.isIndoor == isIndoor)&&(identical(other.description, description) || other.description == description)&&(identical(other.rules, rules) || other.rules == rules)&&const DeepCollectionEquality().equals(other.photos, _photos)&&(identical(other.status, status) || other.status == status)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.votingClosesAt, votingClosesAt) || other.votingClosesAt == votingClosesAt)&&(identical(other.report, report) || other.report == report)&&(identical(other.motm, motm) || other.motm == motm)&&(identical(other.booking, booking) || other.booking == booking));
 }
 
 
 @override
 int get hashCode {
-    return Object.hashAll([runtimeType,id,organizer,title,venue,startAt,endAt,format,maxPlayers,currentPlayers,guestCount,slots,skillLevel,price,isIndoor,description,rules,const DeepCollectionEquality().hash(_photos),status,createdAt,votingClosesAt,report,motm]);
+    return Object.hashAll([runtimeType,id,organizer,title,venue,startAt,endAt,format,maxPlayers,currentPlayers,guestCount,slots,skillLevel,price,isIndoor,description,rules,const DeepCollectionEquality().hash(_photos),status,createdAt,votingClosesAt,report,motm,booking]);
 }
 
 @override
 String toString() {
-    return 'FootballMatch(id: $id, organizer: $organizer, title: $title, venue: $venue, startAt: $startAt, endAt: $endAt, format: $format, maxPlayers: $maxPlayers, currentPlayers: $currentPlayers, guestCount: $guestCount, slots: $slots, skillLevel: $skillLevel, price: $price, isIndoor: $isIndoor, description: $description, rules: $rules, photos: $photos, status: $status, createdAt: $createdAt, votingClosesAt: $votingClosesAt, report: $report, motm: $motm)';
+    return 'FootballMatch(id: $id, organizer: $organizer, title: $title, venue: $venue, startAt: $startAt, endAt: $endAt, format: $format, maxPlayers: $maxPlayers, currentPlayers: $currentPlayers, guestCount: $guestCount, slots: $slots, skillLevel: $skillLevel, price: $price, isIndoor: $isIndoor, description: $description, rules: $rules, photos: $photos, status: $status, createdAt: $createdAt, votingClosesAt: $votingClosesAt, report: $report, motm: $motm, booking: $booking)';
 }
 
 
@@ -351,7 +355,7 @@ abstract mixin class _$FootballMatchCopyWith<$Res> implements $FootballMatchCopy
   factory _$FootballMatchCopyWith(_FootballMatch value, $Res Function(_FootballMatch) _then) = __$FootballMatchCopyWithImpl;
 @override @useResult
 $Res call({
- String id, UserSummary organizer, String title, Venue venue, DateTime startAt, DateTime endAt, MatchFormat format, int maxPlayers, int currentPlayers, int guestCount, PositionSlots slots, SkillLevel skillLevel, Price price, bool isIndoor, String description, String rules, List<String> photos, MatchStatus status, DateTime? createdAt, DateTime? votingClosesAt, MatchReport? report, MotmResult? motm
+ String id, UserSummary organizer, String title, Venue venue, DateTime startAt, DateTime endAt, MatchFormat format, int maxPlayers, int currentPlayers, int guestCount, PositionSlots slots, SkillLevel skillLevel, Price price, bool isIndoor, String description, String rules, List<String> photos, MatchStatus status, DateTime? createdAt, DateTime? votingClosesAt, MatchReport? report, MotmResult? motm, MatchBooking? booking
 });
 
 
@@ -368,7 +372,7 @@ class __$FootballMatchCopyWithImpl<$Res>
 
 /// Create a copy of FootballMatch
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? organizer = null,Object? title = null,Object? venue = null,Object? startAt = null,Object? endAt = null,Object? format = null,Object? maxPlayers = null,Object? currentPlayers = null,Object? guestCount = null,Object? slots = null,Object? skillLevel = null,Object? price = null,Object? isIndoor = null,Object? description = null,Object? rules = null,Object? photos = null,Object? status = null,Object? createdAt = freezed,Object? votingClosesAt = freezed,Object? report = freezed,Object? motm = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? organizer = null,Object? title = null,Object? venue = null,Object? startAt = null,Object? endAt = null,Object? format = null,Object? maxPlayers = null,Object? currentPlayers = null,Object? guestCount = null,Object? slots = null,Object? skillLevel = null,Object? price = null,Object? isIndoor = null,Object? description = null,Object? rules = null,Object? photos = null,Object? status = null,Object? createdAt = freezed,Object? votingClosesAt = freezed,Object? report = freezed,Object? motm = freezed,Object? booking = freezed,}) {
   return _then(_FootballMatch(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,organizer: null == organizer ? _self.organizer : organizer // ignore: cast_nullable_to_non_nullable
@@ -392,7 +396,8 @@ as MatchStatus,createdAt: freezed == createdAt ? _self.createdAt : createdAt // 
 as DateTime?,votingClosesAt: freezed == votingClosesAt ? _self.votingClosesAt : votingClosesAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,report: freezed == report ? _self.report : report // ignore: cast_nullable_to_non_nullable
 as MatchReport?,motm: freezed == motm ? _self.motm : motm // ignore: cast_nullable_to_non_nullable
-as MotmResult?,
+as MotmResult?,booking: freezed == booking ? _self.booking : booking // ignore: cast_nullable_to_non_nullable
+as MatchBooking?,
   ));
 }
 

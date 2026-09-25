@@ -2,6 +2,7 @@ import { type DocumentData, FieldValue, Timestamp, type Firestore } from 'fireba
 
 import { type Group, GROUPS, type Slots, isGroup, pickGroup } from '../requests/slots.js';
 import { RuleError } from '../shared/rule_error.js';
+import { type BookedSlot, readSlotForBooking } from '../venues/bookings.js';
 
 /**
  * Publishes a draft as a match. Server-side because the organizer may bring
@@ -13,6 +14,8 @@ import { RuleError } from '../shared/rule_error.js';
  *   - matches/{id} with counters/slots reflecting the pre-filled players
  *   - roster + an `accepted` request for each lineup player (so the match
  *     shows in their My Matches and they can leave)
+ *   - the booked venue slot, if the organizer picked one (venue and times
+ *     then come from the venue's slot, not the draft)
  *   - deletes the draft
  */
 
@@ -27,6 +30,9 @@ export interface PublishResult {
   addedPlayers: string[];
   title: string;
   organizerName: string;
+  /** Set when a venue slot was booked: the venue (= owner uid) to notify. */
+  bookedVenueId: string | null;
+  startMs: number;
 }
 
 const fail = (message: string): never => {
@@ -94,20 +100,28 @@ export async function publishMatch(
 
     // ---- validate the draft ----
     const title = str(draft.title, 'Title', 3, 80);
-    const v = draft.venue ?? fail('Add a venue.');
-    const venue = {
-      name: str(v.name, 'Venue name', 1, 80),
-      address: typeof v.address === 'string' ? v.address.trim().slice(0, 120) : '',
-      city: str(v.city, 'City', 1, 60),
-      placeId: typeof v.placeId === 'string' ? v.placeId : null,
-      lat: typeof v.lat === 'number' ? v.lat : null,
-      lng: typeof v.lng === 'number' ? v.lng : null,
-    };
-    if (!(draft.startAt instanceof Timestamp) || !(draft.endAt instanceof Timestamp)) {
-      fail('Pick a date and time.');
+    const booked: BookedSlot | null = draft.booking
+      ? await readSlotForBooking(db, tx, draft.booking, input.callerUid, now)
+      : null;
+    let venue: Record<string, unknown>;
+    if (booked) {
+      venue = booked.venue;
+    } else {
+      const v = draft.venue ?? fail('Add a venue.');
+      venue = {
+        name: str(v.name, 'Venue name', 1, 80),
+        address: typeof v.address === 'string' ? v.address.trim().slice(0, 120) : '',
+        city: str(v.city, 'City', 1, 60),
+        placeId: typeof v.placeId === 'string' ? v.placeId : null,
+        lat: typeof v.lat === 'number' ? v.lat : null,
+        lng: typeof v.lng === 'number' ? v.lng : null,
+      };
+      if (!(draft.startAt instanceof Timestamp) || !(draft.endAt instanceof Timestamp)) {
+        fail('Pick a date and time.');
+      }
     }
-    const startAt = draft.startAt as Timestamp;
-    const endAt = draft.endAt as Timestamp;
+    const startAt = booked?.startAt ?? (draft.startAt as Timestamp);
+    const endAt = booked?.endAt ?? (draft.endAt as Timestamp);
     if (startAt.toMillis() <= now.getTime()) fail('Kick-off must be in the future.');
     const length = endAt.toMillis() - startAt.toMillis();
     if (length < 30 * MIN_MS || length > 360 * MIN_MS) fail('Matches must last 30 minutes to 6 hours.');
@@ -195,7 +209,10 @@ export async function publishMatch(
       slots,
       skillLevel: draft.skillLevel,
       price: { amount: price, currency: 'NPR', isFree: price === 0 },
-      isIndoor: draft.isIndoor === true,
+      isIndoor: booked ? booked.isIndoor : draft.isIndoor === true,
+      ...(booked
+        ? { booking: { venueId: booked.venueId, slotId: booked.slotId, status: 'confirmed' } }
+        : {}),
       description,
       rules,
       photos,
@@ -203,6 +220,18 @@ export async function publishMatch(
       createdAt: ts,
       updatedAt: ts,
     });
+    if (booked) {
+      tx.update(booked.slotRef, {
+        status: 'booked',
+        booking: {
+          matchId: matchRef.id,
+          matchTitle: title,
+          organizerId: input.callerUid,
+          organizerName: organizer.fullName,
+          bookedAt: ts,
+        },
+      });
+    }
     const snapshot = { title, startAt, venueName: venue.name };
     for (const r of roster) {
       tx.set(matchRef.collection('roster').doc(r.uid), {
@@ -232,6 +261,8 @@ export async function publishMatch(
       addedPlayers: roster.map((r) => r.uid).filter((u) => u !== input.callerUid),
       title,
       organizerName: organizer.fullName,
+      bookedVenueId: booked?.venueId ?? null,
+      startMs: startAt.toMillis(),
     };
   });
 }

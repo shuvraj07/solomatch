@@ -17,7 +17,7 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final inbox = ref.watch(inboxProvider);
-    final uid = ref.watch(currentProfileProvider)?.uid;
+    final uid = ref.watch(currentUidProvider);
     final unread = [
       for (final n in inbox.value ?? const <AppNotification>[])
         if (!n.read) n.id,
@@ -27,8 +27,15 @@ class NotificationsScreen extends ConsumerWidget {
       if (uid != null && !n.read) {
         await ref.read(notificationRepositoryProvider).markRead(uid, n.id);
       }
+      if (!context.mounted) return;
+      final route = n.route;
       final matchId = n.matchId;
-      if (matchId != null && context.mounted) {
+      if (route != null && route.startsWith(AppRoutes.owner)) {
+        // Owner tabs are shell roots.
+        context.go(route);
+      } else if (route != null) {
+        await context.push(route);
+      } else if (matchId != null) {
         await context.push(AppRoutes.matchDetails(matchId));
       }
     }

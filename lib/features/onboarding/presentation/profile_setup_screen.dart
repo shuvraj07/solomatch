@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../app/session/account_mode.dart';
 import '../../../app/session/sign_out.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/widgets/error_snackbar.dart';
@@ -59,6 +60,14 @@ class ProfileSetupScreen extends ConsumerWidget {
           automaticallyImplyLeading: false,
           title: Text('Step ${step.index + 1} of $total'),
           actions: [
+            if (step.index == 0)
+              TextButton(
+                key: const Key('switchToOwnerSetup'),
+                onPressed: () => ref
+                    .read(accountModeProvider.notifier)
+                    .select(AccountMode.owner),
+                child: const Text('I own a venue'),
+              ),
             TextButton(
               onPressed: () => ref.read(signOutProvider)(),
               child: const Text('Sign out'),

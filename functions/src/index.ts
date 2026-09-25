@@ -25,6 +25,8 @@ import { sendReminders } from './notifications/reminders.js';
 import { acceptRequest, leaveMatch, rejectRequest } from './requests/join_requests.js';
 import { isGroup } from './requests/slots.js';
 import { RuleError } from './shared/rule_error.js';
+import { bookedNotice, cancelBookingByVenue, releaseBooking } from './venues/bookings.js';
+import { applyVenueRating } from './venues/ratings.js';
 
 initializeApp();
 
@@ -142,6 +144,22 @@ export const publishDraft = onCall(async (req) => {
     ),
     `added_${result.matchId}`,
   );
+  if (result.bookedVenueId) {
+    await deliver(
+      db,
+      getMessaging(),
+      [
+        bookedNotice(
+          result.bookedVenueId,
+          result.matchId,
+          result.title,
+          result.organizerName,
+          result.startMs,
+        ),
+      ],
+      `booked_${result.matchId}`,
+    );
+  }
   return { matchId: result.matchId, currentPlayers: result.currentPlayers };
 });
 
@@ -186,6 +204,10 @@ export const onMatchUpdated = onDocumentUpdated('matches/{matchId}', async (even
     roster: roster?.docs.map((d) => d.id) ?? [],
     pending: pending?.docs.map((d) => d.id) ?? [],
   });
+  // A cancelled match gives its venue slot back.
+  if (after.status === 'cancelled' && before.status !== 'cancelled') {
+    items.push(...(await releaseBooking(db, matchId, after)));
+  }
   await deliver(db, getMessaging(), items, event.id);
 });
 
@@ -258,6 +280,11 @@ export const deleteMyAccount = onCall({ timeoutSeconds: 300 }, async (req) => {
     {
       db: getFirestore(),
       deleteAuthUser: (u) => getAuth().deleteUser(u),
+      notify: async (items) => {
+        for (const n of items) {
+          await deliver(getFirestore(), getMessaging(), [n], `venue_closed_${n.matchId}`);
+        }
+      },
       deleteFiles: async (prefix) => {
         try {
           await bucket.deleteFiles({ prefix });
@@ -270,3 +297,32 @@ export const deleteMyAccount = onCall({ timeoutSeconds: 300 }, async (req) => {
   );
   return summary;
 });
+
+// --------------------------------------------------------------------- venues
+
+/** Venue owner cancels a booked slot: { slotId, reason }. */
+export const cancelVenueBooking = onCall(async (req) => {
+  const ownerUid = requireUid(req);
+  const slotId = requireString(req.data, 'slotId');
+  const reason = (req.data as Record<string, unknown>)?.reason;
+  const db = getFirestore();
+  const items = await run(() =>
+    cancelBookingByVenue(db, {
+      ownerUid,
+      slotId,
+      reason: typeof reason === 'string' ? reason : '',
+    }),
+  );
+  await deliver(db, getMessaging(), items, `venue_cancel_${ownerUid}_${slotId}`);
+  return { ok: true };
+});
+
+/** New venue rating → update the venue's averages and tell the owner. */
+export const onVenueRatingCreated = onDocumentCreated(
+  'venues/{venueId}/ratings/{ratingId}',
+  async (event) => {
+    const db = getFirestore();
+    const note = await applyVenueRating(db, event.params.venueId, event.params.ratingId);
+    if (note) await deliver(db, getMessaging(), [note], event.id);
+  },
+);

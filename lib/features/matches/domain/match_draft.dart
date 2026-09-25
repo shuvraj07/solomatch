@@ -9,6 +9,10 @@ import 'position_slots.dart';
 
 part 'match_draft.freezed.dart';
 
+/// A venue slot the organizer picked. When set, the venue and times come
+/// from the slot, and publishing books it.
+typedef DraftBooking = ({String venueId, String slotId});
+
 /// A match being created (Firestore `match_drafts/{id}`). Fields are
 /// optional until the organizer fills them in; the same [id] becomes the
 /// published match's ID.
@@ -47,6 +51,9 @@ abstract class MatchDraft with _$MatchDraft {
 
     /// Confirmed friends who aren't on SoloMatch.
     @Default(0) int guestCount,
+
+    /// A venue slot booked through the app (see [DraftBooking]).
+    DraftBooking? booking,
     DateTime? updatedAt,
   }) = _MatchDraft;
 

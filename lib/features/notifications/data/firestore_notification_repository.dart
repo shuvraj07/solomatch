@@ -29,6 +29,7 @@ class FirestoreNotificationRepository implements NotificationRepository {
                   title: d.data()['title'] as String? ?? '',
                   body: d.data()['body'] as String? ?? '',
                   matchId: d.data()['matchId'] as String?,
+                  route: d.data()['route'] as String?,
                   read: d.data()['read'] as bool? ?? false,
                   createdAt: (d.data()['createdAt'] as Timestamp?)?.toDate(),
                 ),

@@ -51,7 +51,17 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Discover')),
+      appBar: AppBar(
+        title: const Text('Discover'),
+        actions: [
+          TextButton.icon(
+            key: const Key('venuesButton'),
+            onPressed: () => context.push(AppRoutes.venues),
+            icon: const Icon(Icons.stadium_rounded),
+            label: const Text('Venues'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(

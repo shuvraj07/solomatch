@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:solomatch/app/router/app_routes.dart';
 import 'package:solomatch/app/router/session_redirect.dart';
 import 'package:solomatch/app/session/session_state.dart';
+import 'package:solomatch/features/venues/domain/venue_models.dart';
 
 import '../../fakes/test_data.dart';
 
@@ -44,5 +45,28 @@ void main() {
     expect(sessionRedirect(ready, AppRoutes.splash), AppRoutes.home);
     expect(sessionRedirect(ready, AppRoutes.discover), isNull);
     expect(sessionRedirect(ready, AppRoutes.createMatch), isNull);
+  });
+
+  test('players cannot open the owner app', () {
+    expect(sessionRedirect(ready, AppRoutes.owner), AppRoutes.home);
+    expect(sessionRedirect(ready, AppRoutes.ownerEditVenue), AppRoutes.home);
+    expect(sessionRedirect(ready, AppRoutes.venues), isNull);
+  });
+
+  test('venue owners stay in the owner app, settings and inbox', () {
+    const owner = AsyncData<SessionState>(
+      OwnerReady(
+        testUser,
+        OwnerProfile(uid: 'raj', name: 'Raj', phone: '9800000000'),
+      ),
+    );
+    expect(sessionRedirect(owner, AppRoutes.signIn), AppRoutes.owner);
+    expect(sessionRedirect(owner, AppRoutes.onboarding), AppRoutes.owner);
+    expect(sessionRedirect(owner, AppRoutes.home), AppRoutes.owner);
+    expect(sessionRedirect(owner, AppRoutes.createMatch), AppRoutes.owner);
+    expect(sessionRedirect(owner, AppRoutes.owner), isNull);
+    expect(sessionRedirect(owner, AppRoutes.ownerVenue), isNull);
+    expect(sessionRedirect(owner, AppRoutes.settings), isNull);
+    expect(sessionRedirect(owner, AppRoutes.notifications), isNull);
   });
 }

@@ -14,6 +14,9 @@ abstract class AppNotification with _$AppNotification {
     required String title,
     required String body,
     String? matchId,
+
+    /// Screen to open, when it isn't the match page (e.g. owner bookings).
+    String? route,
     @Default(false) bool read,
     DateTime? createdAt,
   }) = _AppNotification;
@@ -33,6 +36,9 @@ abstract class AppNotification with _$AppNotification {
     'report_reminder' => '📝',
     'added_to_match' => '🤝',
     'motm_vote' || 'motm_won' => '🏆',
+    'venue_booked' => '📅',
+    'booking_cancelled' || 'venue_cancelled' => '🚫',
+    'new_venue_rating' => '⭐',
     _ => '⚽',
   };
 }

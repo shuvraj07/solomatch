@@ -1,6 +1,8 @@
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 
+import type { Outgoing } from '../notifications/messages.js';
 import { leaveMatch } from '../requests/join_requests.js';
+import { cancelBookingByVenue } from '../venues/bookings.js';
 
 const UPCOMING = ['published', 'filling', 'full'];
 
@@ -10,11 +12,15 @@ export interface DeleteDeps {
   deleteAuthUser: (uid: string) => Promise<void>;
   /** Deletes Storage files under a prefix (profile photo, uploads). */
   deleteFiles: (prefix: string) => Promise<void>;
+  /** Sends notifications (organizers whose venue bookings are cancelled). */
+  notify?: (items: Outgoing[]) => Promise<unknown>;
 }
 
 export interface DeleteSummary {
   leftMatches: number;
   cancelledMatches: number;
+  /** Venue owners: upcoming bookings cancelled. */
+  cancelledBookings: number;
 }
 
 /**
@@ -30,6 +36,9 @@ export interface DeleteSummary {
  *     blocks) and uploaded files.
  *  5. Delete the login.
  *
+ * Venue owners: upcoming bookings are cancelled (organizers are told), then
+ * the owner profile and venue, with its slots and ratings, are deleted.
+ *
  * Kept on purpose: past matches, chat messages and reviews they wrote, as
  * other people's history depends on them. Their name there is replaced
  * with "Deleted player" where it's stored with the account.
@@ -39,6 +48,31 @@ export async function deleteAccount(deps: DeleteDeps, uid: string): Promise<Dele
   const now = new Date();
   let leftMatches = 0;
   let cancelledMatches = 0;
+  let cancelledBookings = 0;
+
+  // Venue owner: cancel upcoming bookings, then remove the venue.
+  const venueRef = db.collection('venues').doc(uid);
+  const booked = await venueRef.collection('slots').where('status', '==', 'booked').get();
+  const notices: Outgoing[] = [];
+  for (const slot of booked.docs) {
+    if (slot.data().startAt.toDate() <= now) continue;
+    try {
+      notices.push(
+        ...(await cancelBookingByVenue(db, {
+          ownerUid: uid,
+          slotId: slot.id,
+          reason: 'The venue closed its SoloMatch account.',
+        })),
+      );
+      cancelledBookings++;
+    } catch (e) {
+      console.warn('cancel booking failed', slot.id, e);
+    }
+  }
+  if (notices.length && deps.notify) await deps.notify(notices);
+  await db.recursiveDelete(venueRef);
+  await db.collection('owners').doc(uid).delete();
+  await deps.deleteFiles(`venue_photos/${uid}/`);
 
   // 1 + 3. Matches they asked to join.
   const requests = await db.collectionGroup('requests').where('player.uid', '==', uid).get();
@@ -95,5 +129,5 @@ export async function deleteAccount(deps: DeleteDeps, uid: string): Promise<Dele
 
   // 5. The login itself, last, so a failure above can be retried.
   await deps.deleteAuthUser(uid);
-  return { leftMatches, cancelledMatches };
+  return { leftMatches, cancelledMatches, cancelledBookings };
 }

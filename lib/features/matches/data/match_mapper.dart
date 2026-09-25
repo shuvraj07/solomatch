@@ -49,6 +49,15 @@ abstract final class MatchMapper {
           final Map<String, dynamic> m => motmFrom(m),
           _ => null,
         },
+        booking: switch (d['booking']) {
+          final Map<String, dynamic> b => (
+            venueId: b['venueId'] as String,
+            slotId: b['slotId'] as String,
+            status: BookingStatus.fromWire(b['status'] as String? ?? ''),
+            reason: b['reason'] as String? ?? '',
+          ),
+          _ => null,
+        },
       );
 
   static MatchReport reportFrom(Map<String, dynamic> r) => MatchReport(
@@ -149,6 +158,13 @@ abstract final class MatchMapper {
           lineupFrom(l! as Map<String, dynamic>),
       ],
       guestCount: _int(d['guestCount']),
+      booking: switch (d['booking']) {
+        {'venueId': final String venueId, 'slotId': final String slotId} => (
+          venueId: venueId,
+          slotId: slotId,
+        ),
+        _ => null,
+      },
       updatedAt: (d['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
@@ -190,6 +206,10 @@ abstract final class MatchMapper {
       'organizerGroup': d.organizerGroup?.name,
       'lineup': [for (final l in d.lineup) lineupTo(l)],
       'guestCount': d.guestCount,
+      'booking': switch (d.booking) {
+        final b? => {'venueId': b.venueId, 'slotId': b.slotId},
+        null => null,
+      },
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }
@@ -221,6 +241,7 @@ abstract final class MatchMapper {
     placeId: v['placeId'] as String?,
     lat: (v['lat'] as num?)?.toDouble(),
     lng: (v['lng'] as num?)?.toDouble(),
+    venueId: v['venueId'] as String?,
   );
 
   static Map<String, dynamic> venueTo(Venue v) => {
@@ -230,6 +251,8 @@ abstract final class MatchMapper {
     'placeId': v.placeId,
     'lat': v.lat,
     'lng': v.lng,
+    // Only the server sets this (when a slot is booked).
+    'venueId': ?v.venueId,
   };
 
   static UserSummary userSummaryFrom(Map<String, dynamic> u) => UserSummary(

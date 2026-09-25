@@ -28,8 +28,14 @@ class CreateMatchController extends Notifier<CreateMatchState> {
     state = state.copyWith(draft: change(state.draft), dirty: true);
   }
 
+  bool _skip(CreateMatchStep s) =>
+      state.draft.booking != null && s.setByBooking;
+
   void back() {
-    final previous = state.step.previous;
+    var previous = state.step.previous;
+    while (previous != null && _skip(previous)) {
+      previous = previous.previous;
+    }
     if (previous != null) state = state.copyWith(step: previous);
   }
 
@@ -43,7 +49,10 @@ class CreateMatchController extends Notifier<CreateMatchState> {
       now: _now(),
     );
     if (problem != null) throw ValidationFailure(problem);
-    final next = state.step.next;
+    var next = state.step.next;
+    while (next != null && _skip(next)) {
+      next = next.next;
+    }
     if (next != null) state = state.copyWith(step: next);
   }
 

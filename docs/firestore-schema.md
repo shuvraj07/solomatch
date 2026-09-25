@@ -60,7 +60,8 @@ can read or write them. The server deletes dead ones.
 
 ### `users/{uid}/notifications/{id}` 🔒
 
-`{type, title, body, matchId, read, createdAt}`: the in-app inbox, written only
+`{type, title, body, matchId, route?, read, createdAt}`: the in-app inbox (`route` opens a
+screen other than the match page, e.g. `/owner` for venue owners), written only
 by Cloud Functions. The owner can read it and flip `read` to true. See
 [notifications.md](notifications.md).
 
@@ -123,7 +124,11 @@ cancel. Roster counts and status belong to the server.
 | `report` 🔒 | map | `{players: {uid: {goals, assists, yellowCards (0–2), redCard}}, submittedAt, updatedAt}`, written by the `saveMatchReport` function |
 | `remindersSent` 🔒 | map | `{h24, h2, m30}` flags, so each kick-off reminder goes out once |
 | `motmClosed` 🔒, `motm` 🔒 | bool, map | `motm = {winners: [{uid, name, username, photoUrl}], votes, totalVotes}`. Several winners means a tie |
+| `booking` 🔒 | map | `{venueId, slotId, status: 'confirmed' \| 'released' \| 'cancelled_by_venue', reason?}` when a venue slot was booked. See [venues.md](venues.md) |
 | `createdAt`, `updatedAt` | timestamp | |
+
+`venue` also has `venueId` 🔒 when the match was booked at a SoloMatch venue
+(it enables venue ratings).
 
 Indexes: `(organizer.uid, startAt DESC)` for "My matches → Created",
 `(status, startAt)` for the upcoming list and kick-off,
@@ -214,6 +219,46 @@ marks it `counted` (so it's idempotent) and notifies the player.
 
 Index: `(revieweeId ASC, createdAt DESC)`.
 
+## `owners/{uid}`: venue owner accounts
+
+`{name, phone, createdAt}`. Readable by anyone signed in (it's a business
+contact). Created by the owner only if they have no `players/{uid}`; an
+account is a player or an owner, never both. See [venues.md](venues.md).
+
+## `venues/{ownerUid}`: venues
+
+One per owner; the document ID is the owner's uid.
+
+| Field | Type | Notes |
+|---|---|---|
+| `ownerId` | string | = document ID |
+| `name`, `searchName` | string | 2–80 chars; `searchName` = `name.lower()` |
+| `address`, `city` | string | |
+| `phone` | string | `^[+0-9 -]{7,20}$` |
+| `description` | string | ≤ 1000 |
+| `isIndoor` | bool | |
+| `formats` | string[] | ≥ 1 of the match formats |
+| `pricePerHour` | int | NPR, 0–100000 |
+| `amenities` | string[] | `parking`, `changing_room`, `showers`, `drinking_water`, `floodlights`, `cafe`, `bibs`, `balls` |
+| `photos` | string[] | ≤ 5, Storage `venue_photos/{uid}/` |
+| `lat`, `lng` | number \| null | For Maps later |
+| `rating` 🔒 | map | `count`, `overall`/`pitch`/`facilities`/`value` averages and `<part>Sum` |
+| `createdAt`, `updatedAt` | timestamp | |
+
+### `venues/{venueId}/slots/{slotId}`
+
+`{startAt, endAt, price, status: 'free' | 'booked', booking 🔒 {matchId,
+matchTitle, organizerId, organizerName, bookedAt}, createdAt}`. The owner
+creates free future slots (30 min–6 h) and can edit or delete them while
+they're free. Only `publishDraft` books a slot; only Cloud Functions cancel.
+
+### `venues/{venueId}/ratings/{matchId}_{uid}`
+
+`{matchId, reviewerId, overall, pitch, facilities, value (1–5), comment
+(≤ 300), reviewer {name, photoUrl}, matchTitle, createdAt, counted 🔒}`.
+Create-only, by the organizer or a roster player of a completed match whose
+`venue.venueId` is this venue, within 14 days of `endAt`.
+
 ## `match_drafts/{draftId}`: unfinished matches
 
 Private to the organizer (`organizerId == auth.uid`). Same shape as the create
@@ -231,6 +276,9 @@ Pre-confirmed players ("Your players" step):
 - `guestCount`: friends who aren't on SoloMatch.
 - `startAt` / `endAt`: absolute times computed on the organizer's phone. The
   server uses these rather than re-deriving them from the date and minutes.
+
+- `booking`: `{venueId, slotId}` when a venue slot was picked. The server
+  then takes the venue and times from the slot.
 
 Index: `(organizerId ASC, updatedAt DESC)`.
 
@@ -257,6 +305,11 @@ in `functions/test/rules/` (`npm run test:rules`) and cover:
 - Blocks are owner-only; a blocked player can't request your matches.
 - Reports: created only as yourself with a known reason, readable only by admins.
 - Notification preferences only accept the four known categories as booleans.
+- Owners, venues and slots: only the owner writes their venue; slots are
+  created free and in the future and can't be marked booked from the app;
+  `rating` is server-only. An account can't be both a player and an owner.
+- Venue ratings: only people who played a completed match booked at that
+  venue, once, within 14 days.
 - Device tokens are owner-only. The inbox can't be written by clients except to
   mark items read, so nobody can fake notifications.
 - Join requests can only be created by the player themselves, with a player

@@ -19,7 +19,11 @@ export type NotificationType =
   | 'request_expired'
   | 'kick_off'
   | 'report_reminder'
-  | 'new_review';
+  | 'new_review'
+  | 'venue_booked'
+  | 'booking_cancelled'
+  | 'venue_cancelled'
+  | 'new_venue_rating';
 
 export interface Outgoing {
   uid: string;
@@ -27,6 +31,8 @@ export interface Outgoing {
   title: string;
   body: string;
   matchId: string;
+  /** App route to open; defaults to the match page. */
+  route?: string;
 }
 
 type Doc = Record<string, any> | undefined;

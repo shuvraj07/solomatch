@@ -3,11 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../app/router/app_routes.dart';
+import '../../../app/session/account_mode.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/error_snackbar.dart';
 import '../../../core/widgets/loading_button.dart';
 import 'auth_controller.dart';
+import 'widgets/account_mode_toggle.dart';
 import 'widgets/auth_scaffold.dart';
 import 'widgets/auth_switch_prompt.dart';
 import 'widgets/password_field.dart';
@@ -49,15 +51,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final loading = ref.watch(authControllerProvider).isLoading;
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
 
+    final owner = ref.watch(accountModeProvider) == AccountMode.owner;
+
     return AuthScaffold(
-      title: 'Join the game',
-      subtitle: 'Create an account to find matches and fill your team.',
+      title: owner ? 'List your venue' : 'Join the game',
+      subtitle: owner
+          ? 'Create a venue owner account so organizers can book your pitch.'
+          : 'Create an account to find matches and fill your team.',
       child: Form(
         key: _formKey,
         child: AutofillGroup(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const AccountModeToggle(),
               TextFormField(
                 key: const Key('emailField'),
                 controller: _email,
