@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage } from 'firebase-admin/storage';
 import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/firestore';
@@ -27,6 +27,12 @@ import { isGroup } from './requests/slots.js';
 import { RuleError } from './shared/rule_error.js';
 import { bookedNotice, cancelBookingByVenue, releaseBooking } from './venues/bookings.js';
 import { applyVenueRating } from './venues/ratings.js';
+import {
+  fullTimeMessage,
+  goalMessage,
+  liveAudience,
+  recomputeScore,
+} from './live/live.js';
 
 initializeApp();
 
@@ -204,6 +210,21 @@ export const onMatchUpdated = onDocumentUpdated('matches/{matchId}', async (even
     roster: roster?.docs.map((d) => d.id) ?? [],
     pending: pending?.docs.map((d) => d.id) ?? [],
   });
+  // Full time: tell players and followers the final score.
+  if (after.status === 'completed' && before.status !== 'completed' && after.score) {
+    const messaging = getMessaging();
+    const audience = await liveAudience(db, matchId, after);
+    const msg = fullTimeMessage(after, after.score);
+    await Promise.all(
+      audience.map((uid) =>
+        pushToUser(db, messaging, uid, msg, {
+          type: 'full_time',
+          matchId,
+          route: `/matches/${matchId}`,
+        }),
+      ),
+    );
+  }
   // A cancelled match gives its venue slot back.
   if (after.status === 'cancelled' && before.status !== 'cancelled') {
     items.push(...(await releaseBooking(db, matchId, after)));
@@ -324,5 +345,48 @@ export const onVenueRatingCreated = onDocumentCreated(
     const db = getFirestore();
     const note = await applyVenueRating(db, event.params.venueId, event.params.ratingId);
     if (note) await deliver(db, getMessaging(), [note], event.id);
+  },
+);
+
+// ----------------------------------------------------------------------- live
+
+/** Live event added or undone → recount the score; push new goals. */
+export const onMatchEventWritten = onDocumentWritten(
+  'matches/{matchId}/events/{eventId}',
+  async (event) => {
+    const { matchId } = event.params;
+    const db = getFirestore();
+    const score = await recomputeScore(db, matchId);
+    const created = !event.data?.before.exists ? event.data?.after.data() : undefined;
+    if (created?.type !== 'goal') return;
+
+    const match = (await db.collection('matches').doc(matchId).get()).data();
+    if (!match) return;
+    const messaging = getMessaging();
+    const msg = goalMessage(match, created, score);
+    const audience = (await liveAudience(db, matchId, match)).filter((u) => u !== created.by);
+    await Promise.all(
+      audience.map((uid) =>
+        pushToUser(db, messaging, uid, msg, {
+          type: 'live_goal',
+          matchId,
+          route: `/matches/${matchId}`,
+        }),
+      ),
+    );
+  },
+);
+
+/** Keeps `followerCount` on the match ("12 following"). */
+export const onMatchFollowerWritten = onDocumentWritten(
+  'matches/{matchId}/followers/{uid}',
+  async (event) => {
+    const before = event.data?.before.exists ?? false;
+    const after = event.data?.after.exists ?? false;
+    if (before === after) return;
+    await getFirestore()
+      .collection('matches')
+      .doc(event.params.matchId)
+      .update({ followerCount: FieldValue.increment(after ? 1 : -1) });
   },
 );

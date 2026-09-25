@@ -6,6 +6,8 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../core/widgets/loading_button.dart';
 import '../../../core/widgets/placeholder_view.dart';
 import '../../../core/widgets/run_with_feedback.dart';
+import '../../live/data/live_repository.dart';
+import '../../live/domain/live_models.dart';
 import '../../match_requests/data/match_request_providers.dart';
 import '../../matches/data/match_providers.dart';
 import '../data/match_report_providers.dart';
@@ -49,11 +51,15 @@ class _MatchReportScreenState extends ConsumerState<MatchReportScreen> {
   Widget build(BuildContext context) {
     final match = ref.watch(matchProvider(widget.matchId)).value;
     final roster = ref.watch(rosterProvider(widget.matchId)).value;
+    final events = ref.watch(liveEventsProvider(widget.matchId)).value;
 
-    if (match == null || roster == null) {
+    if (match == null || roster == null || events == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final lines = _lines ??= {...?match.report?.players};
+    // First report: start from the goals and cards posted live.
+    final lines = _lines ??= {
+      ...(match.report?.players ?? LiveMatch.reportLines(events)),
+    };
 
     return Scaffold(
       appBar: AppBar(title: const Text('Match report')),

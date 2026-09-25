@@ -58,6 +58,21 @@ abstract final class MatchMapper {
           ),
           _ => null,
         },
+        teams: switch (d['teams']) {
+          {'home': final String home, 'away': final String away} => (
+            home: home,
+            away: away,
+          ),
+          _ => (home: 'Team A', away: 'Team B'),
+        },
+        score: switch (d['score']) {
+          {'home': final num home, 'away': final num away} => (
+            home: home.toInt(),
+            away: away.toInt(),
+          ),
+          _ => null,
+        },
+        followerCount: _int(d['followerCount']),
       );
 
   static MatchReport reportFrom(Map<String, dynamic> r) => MatchReport(

@@ -5,6 +5,7 @@ import 'package:solomatch/app/app.dart';
 import 'package:solomatch/app/providers/clock_provider.dart';
 import 'package:solomatch/features/auth/data/auth_providers.dart';
 import 'package:solomatch/features/chat/data/chat_providers.dart';
+import 'package:solomatch/features/live/data/live_repository.dart';
 import 'package:solomatch/features/match_report/data/match_report_providers.dart';
 import 'package:solomatch/features/match_requests/data/match_request_providers.dart';
 import 'package:solomatch/features/matches/data/match_providers.dart';
@@ -18,6 +19,7 @@ import 'package:solomatch/features/venues/data/venue_providers.dart';
 
 import '../fakes/fake_auth_repository.dart';
 import '../fakes/fake_chat_repository.dart';
+import '../fakes/fake_live_repository.dart';
 import '../fakes/fake_match_report_repository.dart';
 import '../fakes/fake_match_repository.dart';
 import '../fakes/fake_match_request_repository.dart';
@@ -45,6 +47,7 @@ Future<void> pumpApp(
   FakeSettingsRepository? settings,
   FakeSafetyRepository? safety,
   FakeVenueRepository? venues,
+  FakeLiveRepository? live,
   DateTime? now,
 }) async {
   final matchRepo = matches ?? FakeMatchRepository();
@@ -86,6 +89,9 @@ Future<void> pumpApp(
         ),
         venueRepositoryProvider.overrideWithValue(
           venues ?? FakeVenueRepository(),
+        ),
+        liveRepositoryProvider.overrideWithValue(
+          live ?? FakeLiveRepository(matches: matchRepo),
         ),
         if (now != null) clockProvider.overrideWithValue(() => now),
       ],

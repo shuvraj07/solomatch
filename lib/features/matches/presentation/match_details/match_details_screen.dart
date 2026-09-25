@@ -12,6 +12,7 @@ import '../../../../core/widgets/run_with_feedback.dart';
 import '../../../../shared/widgets/player_avatar.dart';
 import '../../../../shared/widgets/status_chip.dart';
 import '../../../chat/presentation/widgets/match_chat_buttons.dart';
+import '../../../live/presentation/live_center.dart';
 import '../../../match_report/presentation/widgets/motm_card.dart';
 import '../../../match_requests/data/match_request_providers.dart';
 import '../../../match_requests/domain/join_request.dart';
@@ -326,7 +327,12 @@ class _Loaded extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          LiveCenter(
+            match: m,
+            roster: roster,
+            viewerUid: viewerUid,
+            upcomingSlot: false,
+          ),
           if (m.booking case (
             venueId: _,
             slotId: _,
@@ -414,6 +420,12 @@ class _Loaded extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
           ],
           RosterSummary(match: m, roster: roster),
+          LiveCenter(
+            match: m,
+            roster: roster,
+            viewerUid: viewerUid,
+            upcomingSlot: true,
+          ),
           if (m.description.isNotEmpty) section('About', m.description),
           if (m.rules.isNotEmpty) section('Rules', m.rules),
         ],

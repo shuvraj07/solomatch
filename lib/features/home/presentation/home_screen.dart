@@ -10,6 +10,7 @@ import '../../../core/widgets/error_snackbar.dart';
 import '../../../core/widgets/placeholder_view.dart';
 import '../../../shared/widgets/match_card.dart';
 import '../../../shared/widgets/player_avatar.dart';
+import '../../live/domain/live_models.dart';
 import '../../matches/data/match_providers.dart';
 import '../../notifications/presentation/notification_bell.dart';
 
@@ -95,6 +96,9 @@ class HomeScreen extends ConsumerWidget {
                       MatchCard(
                         match: m,
                         live: true,
+                        note:
+                            '${LiveMatch.scoreLine(m.teams, m.score ?? (home: 0, away: 0))}'
+                            " · ${LiveMatch.minute(m, DateTime.now())}'",
                         onTap: () => context.push(AppRoutes.matchDetails(m.id)),
                       ),
                     ],

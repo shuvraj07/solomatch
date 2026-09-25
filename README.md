@@ -38,6 +38,7 @@ flutter run --dart-define=USE_FIREBASE_EMULATORS=true
 | [authentication.md](docs/authentication.md) | Sign-in methods, session and redirects, onboarding |
 | [firestore-schema.md](docs/firestore-schema.md) | Collections, fields, security rules |
 | [notifications.md](docs/notifications.md) | Push + inbox: events, delivery, reminders |
+| [live.md](docs/live.md) | Live match center: scoreboard, goals and cards, followers |
 | [venues.md](docs/venues.md) | Venue owners, time slots, booking a slot, venue ratings |
 | [discover.md](docs/discover.md) | Live now, search, filters, how recommendations are scored |
 | [realtime.md](docs/realtime.md) | Live data flow, the join flow end to end, why rosters can't overbook |
@@ -70,4 +71,5 @@ npm run test:rules       # Firestore security rules
 | 9a | Reviews & ratings | ✅ |
 | 9b | Safety, settings, edit profile, delete account | ✅ |
 | 9c | Venue owners: venue page, time slots, booking, venue ratings | ✅ |
+| 9d | Live match center: team names, live score, goals and cards, followers | ✅ |
 | 10 | Hardening, integration tests, CI | ⏳ |

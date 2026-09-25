@@ -148,6 +148,12 @@ service cloud.firestore {
         && p.isFree == (p.amount == 0);
     }
 
+    function validTeams(t) {
+      return t.keys().hasOnly(['home', 'away']) && t.keys().hasAll(['home', 'away'])
+        && t.home is string && t.home.size() >= 1 && t.home.size() <= 30
+        && t.away is string && t.away.size() >= 1 && t.away.size() <= 30;
+    }
+
     function isMatchOrganizer() {
       return signedIn() && resource.data.organizer.uid == request.auth.uid;
     }
@@ -193,6 +199,11 @@ service cloud.firestore {
           (changedKeys().hasOnly(['title', 'searchTitle', 'description', 'rules',
                                   'photos', 'updatedAt'])
             && validMatchText(incoming()))
+          ||
+          // Team names for the live match center.
+          (changedKeys().hasOnly(['teams', 'updatedAt'])
+            && validTeams(incoming().teams)
+            && resource.data.status != 'cancelled')
           ||
           // Cancel before kick-off.
           (changedKeys().hasOnly(['status', 'updatedAt'])
@@ -279,6 +290,48 @@ service cloud.firestore {
       match /roster/{playerId} {
         allow read: if signedIn();
         allow write: if false;
+      }
+
+      // ----- live match center: matches/{matchId}/events/{eventId} -----
+      // Anyone signed in can watch. Only the organizer posts goals and cards,
+      // from 10 minutes before kick-off until 3 hours after the final
+      // whistle, and can delete (undo) them in that window. The score on
+      // the match is recounted by the onMatchEventWritten function.
+
+      function liveWindow() {
+        let m = thisMatch();
+        return m.organizer.uid == request.auth.uid
+          && m.status != 'cancelled'
+          && request.time >= m.startAt - duration.value(10, 'm')
+          && request.time <= m.endAt + duration.value(3, 'h');
+      }
+
+      match /events/{eventId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && liveWindow()
+          && incoming().keys().hasOnly(['type', 'team', 'playerUid', 'playerName',
+                                        'minute', 'by', 'createdAt'])
+          && incoming().type in ['goal', 'yellow', 'red']
+          && incoming().team in ['home', 'away']
+          && (incoming().playerUid == null || incoming().playerUid is string)
+          && incoming().playerName is string && incoming().playerName.size() <= 60
+          && incoming().minute is int && incoming().minute >= 0 && incoming().minute <= 200
+          && incoming().by == request.auth.uid
+          && incoming().createdAt == request.time;
+        allow delete: if signedIn() && liveWindow();
+        allow update: if false;
+      }
+
+      // ----- followers: matches/{matchId}/followers/{uid} -----
+      // Get goal and full-time notifications. The count is kept on the
+      // match (followerCount) by a function.
+
+      match /followers/{followerId} {
+        allow read, delete: if isUser(followerId);
+        allow create: if isUser(followerId)
+          && incoming().keys().hasOnly(['createdAt'])
+          && incoming().createdAt == request.time;
+        allow update: if false;
       }
 
       // ----- Man of the Match: matches/{matchId}/motm_votes/{voterId} -----

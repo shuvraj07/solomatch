@@ -28,6 +28,12 @@ enum BookingStatus {
   };
 }
 
+/// Team names shown in the live match center.
+typedef MatchTeams = ({String home, String away});
+
+/// Live score, kept by the server from the organizer's goal events.
+typedef LiveScore = ({int home, int away});
+
 /// The venue slot booked for a match (`matches/{id}.booking`).
 typedef MatchBooking = ({
   String venueId,
@@ -77,6 +83,11 @@ abstract class FootballMatch with _$FootballMatch {
 
     /// Set when the organizer booked a venue slot through the app.
     MatchBooking? booking,
+
+    /// Live match center: team names, score and how many people follow.
+    @Default((home: 'Team A', away: 'Team B')) MatchTeams teams,
+    LiveScore? score,
+    @Default(0) int followerCount,
   }) = _FootballMatch;
 
   const FootballMatch._();

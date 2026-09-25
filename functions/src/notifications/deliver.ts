@@ -90,6 +90,7 @@ export function categoryOf(type: string): NotificationCategory {
     case 'motm_vote':
     case 'motm_won':
       return 'reviews';
+    // live_goal, full_time and everything else about a match.
     default:
       return 'matches';
   }
