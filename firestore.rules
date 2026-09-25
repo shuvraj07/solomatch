@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Baseline: deny everything. Each feature phase opens exactly the access it
+// needs, with tests in functions/test/rules. See docs/firestore-schema.md.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

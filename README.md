@@ -1,0 +1,56 @@
+# SoloMatch ⚽
+
+Find local football matches and fill your team in real time.
+
+**Organizer posts a match → players discover it → players request to join →
+organizer accepts or rejects → the roster updates live on every device.**
+
+Flutter (Android first) + Firebase (Auth, Firestore, Functions, Storage, FCM,
+Crashlytics, Analytics), Riverpod, GoRouter, Freezed.
+
+## Quick start
+
+```sh
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs   # Freezed / JSON codegen
+flutter test
+flutter run                                                 # needs Firebase config, see below
+```
+
+Without Firebase config the app starts on a "Firebase is not configured"
+screen instead of crashing. Follow [docs/firebase-setup.md](docs/firebase-setup.md).
+
+To run against the local Firebase Emulator Suite:
+
+```sh
+firebase emulators:start
+flutter run --dart-define=USE_FIREBASE_EMULATORS=true
+```
+
+## Documentation
+
+| Doc | What's in it |
+|---|---|
+| [architecture.md](docs/architecture.md) | Layers, folder layout, how data flows, key decisions |
+| [firebase-setup.md](docs/firebase-setup.md) | Creating the Firebase project and connecting the app |
+| [testing.md](docs/testing.md) | Test layout and how to run each kind of test |
+| [contributing.md](docs/contributing.md) | Branching, commits, adding a new feature |
+
+More docs (Firestore schema, realtime, auth, Google Maps) are added with the
+phase that introduces each system.
+
+## Status
+
+| Phase | Scope | State |
+|---|---|---|
+| 0 | Foundation: theme, navigation shell, Firebase bootstrap, emulator config | ✅ |
+| 1 | Auth + onboarding | ⏳ |
+| 2 | Matches core | ⏳ |
+| 3 | Maps + discovery + recommendations | ⏳ |
+| 4 | Join requests + realtime roster (server-enforced capacity) | ⏳ |
+| 5 | Notifications + reminders | ⏳ |
+| 6 | Chat | ⏳ |
+| 7 | My Matches + player profiles | ⏳ |
+| 8 | Favorites + football catalog | ⏳ |
+| 9 | Reviews, safety, settings | ⏳ |
+| 10 | Hardening, integration tests, CI | ⏳ |
