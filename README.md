@@ -65,5 +65,6 @@ npm run test:rules       # Firestore security rules
 | 6 | Chat (match group chat + organizer ↔ player, photos, read receipts) | ✅ |
 | 7 | My Matches + public player profiles | ✅ |
 | 8 | Favorites + football catalog | ⏳ |
-| 9 | Reviews, safety, settings | ⏳ |
+| 9a | Reviews & ratings | ✅ |
+| 9b | Safety, settings, edit profile | ⏳ |
 | 10 | Hardening, integration tests, CI | ⏳ |

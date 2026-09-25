@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../shared/widgets/player_avatar.dart';
 import '../../../../shared/widgets/position_badge.dart';
+import '../../../reviews/presentation/widgets/reviews_section.dart';
 import '../../domain/player_profile.dart';
 
 /// Public football profile: identity, positions and career stats.
@@ -125,6 +126,12 @@ class PlayerProfileView extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           Text(profile.bio, style: theme.textTheme.bodyLarge),
         ],
+        const SizedBox(height: AppSpacing.xl),
+        ReviewsSection(
+          uid: profile.uid,
+          ratingAvg: stats.ratingAvg,
+          ratingCount: stats.ratingCount,
+        ),
       ],
     );
   }

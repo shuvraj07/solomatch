@@ -358,6 +358,49 @@ service cloud.firestore {
       }
     }
 
+    // ---------- reviews ----------
+    // reviews/{matchId}_{reviewerId}_{revieweeId}: one per pair per match,
+    // create-only. Both people must have been at the match (roster or
+    // organizer), within 7 days of the final whistle. Ratings are applied
+    // to players/{uid}.stats by the onReviewCreated function.
+
+    match /reviews/{reviewId} {
+      function reviewedMatch() {
+        return get(/databases/$(database)/documents/matches/$(incoming().matchId)).data;
+      }
+
+      function wasThere(m, uid) {
+        return m.organizer.uid == uid
+          || exists(/databases/$(database)/documents/matches/$(incoming().matchId)/roster/$(uid));
+      }
+
+      function validReview() {
+        let m = reviewedMatch();
+        let me = get(/databases/$(database)/documents/players/$(request.auth.uid)).data;
+        return incoming().keys().hasOnly(['matchId', 'reviewerId', 'revieweeId', 'rating',
+                                          'comment', 'reviewer', 'matchTitle', 'createdAt'])
+          && incoming().reviewerId == request.auth.uid
+          && incoming().revieweeId is string
+          && incoming().revieweeId != request.auth.uid
+          && reviewId == incoming().matchId + '_' + request.auth.uid + '_' + incoming().revieweeId
+          && incoming().rating is int && incoming().rating >= 1 && incoming().rating <= 5
+          && incoming().comment is string && incoming().comment.size() <= 300
+          && incoming().reviewer.keys().hasOnly(['name', 'photoUrl'])
+          && incoming().reviewer.name == me.fullName
+          && incoming().reviewer.photoUrl == me.photoUrl
+          && m.status == 'completed'
+          && request.time < m.endAt + duration.value(7, 'd')
+          && incoming().matchTitle == m.title
+          && wasThere(m, request.auth.uid)
+          && wasThere(m, incoming().revieweeId)
+          && incoming().createdAt == request.time;
+      }
+
+      allow read: if signedIn();
+      allow create: if signedIn() && validReview();
+      allow update, delete: if false;
+    }
+
     // ---------- match drafts (organizer-private) ----------
 
     match /match_drafts/{draftId} {

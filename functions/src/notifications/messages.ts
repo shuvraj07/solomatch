@@ -18,7 +18,8 @@ export type NotificationType =
   | 'added_to_match'
   | 'request_expired'
   | 'kick_off'
-  | 'report_reminder';
+  | 'report_reminder'
+  | 'new_review';
 
 export interface Outgoing {
   uid: string;

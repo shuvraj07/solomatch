@@ -26,6 +26,7 @@ Firestore change ──trigger──▶ messages.ts (who gets what) ──▶ de
 | `added_to_match` | organizer pre-confirmed them when publishing | player |
 | `motm_vote` | status → `completed` | roster |
 | `motm_won` | `motm` decided | winner(s) |
+| `new_review` | someone rated you | the rated player |
 
 The rules are pure functions in `functions/src/notifications/messages.ts` and are
 unit-tested in `functions/test/functions/notifications.test.mjs`.

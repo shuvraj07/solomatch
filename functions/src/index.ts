@@ -16,6 +16,7 @@ import { advanceMatches } from './matches/lifecycle.js';
 import { parseLines, submitMatchReport } from './matches/match_report.js';
 import { publishMatch } from './matches/publish_match.js';
 import { deliver, pushToUser } from './notifications/deliver.js';
+import { applyReview } from './reviews/aggregate.js';
 import { forLineup, forMatchChange, forRequestChange } from './notifications/messages.js';
 import { sendReminders } from './notifications/reminders.js';
 import { acceptRequest, leaveMatch, rejectRequest } from './requests/join_requests.js';
@@ -234,3 +235,12 @@ export const onChatMessageCreated = onDocumentCreated(
     );
   },
 );
+
+// -------------------------------------------------------------------- reviews
+
+/** New rating → update the player's average and let them know. */
+export const onReviewCreated = onDocumentCreated('reviews/{reviewId}', async (event) => {
+  const db = getFirestore();
+  const note = await applyReview(db, event.params.reviewId);
+  if (note) await deliver(db, getMessaging(), [note], event.id);
+});

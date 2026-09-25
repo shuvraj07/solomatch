@@ -17,6 +17,7 @@ import '../../../match_requests/data/match_request_providers.dart';
 import '../../../match_requests/domain/join_request.dart';
 import '../../../match_requests/domain/roster_entry.dart';
 import '../../../match_requests/presentation/request_to_join_sheet.dart';
+import '../../../reviews/presentation/widgets/rate_players_card.dart';
 import '../../data/match_providers.dart';
 import '../../domain/football_match.dart';
 import '../../domain/match_action.dart';
@@ -336,6 +337,8 @@ class _Loaded extends StatelessWidget {
           ),
           if (m.status == MatchStatus.completed) ...[
             MotmCard(match: m, roster: roster, viewerUid: viewerUid, now: now),
+            const SizedBox(height: AppSpacing.md),
+            RatePlayersCard(match: m, roster: roster, now: now),
             if (m.isOrganizer(viewerUid) && m.isPostMatchOpen(now))
               Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.md),

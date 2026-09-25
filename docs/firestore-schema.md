@@ -143,8 +143,8 @@ the voter. The server tallies them when voting closes.
 
 `gamesPlayed`, `gamesOrganized` (on completion), `goals`, `assists`,
 `yellowCards`, `redCards` (from reports; edits apply only the difference) and
-`motmAwards` (when voting closes). `ratingAvg` and `ratingCount` arrive with
-reviews.
+`motmAwards` (when voting closes), and `ratingAvg`, `ratingCount`, `ratingSum`
+(from reviews).
 
 ## `conversations/{id}`: chats (created only by Cloud Functions)
 
@@ -172,6 +172,18 @@ as themselves: text of 1–2000 chars, or one photo (uploaded to
 `chat_images/{uid}/{conversationId}/`). Messages can't be edited or deleted.
 Each new message pushes a notification to the other members (push only, not
 the 🔔 inbox).
+
+## `reviews/{matchId}_{reviewerId}_{revieweeId}`: ratings
+
+`{matchId, reviewerId, revieweeId, rating (1–5), comment (≤ 300), reviewer
+{name, photoUrl}, matchTitle, createdAt, counted 🔒}`. Readable by anyone
+signed in. **Create-only**: the deterministic ID means one review per pair per
+match. Both people must have been at the match (roster or organizer), within
+7 days of `endAt`. The `onReviewCreated` function adds the review to
+`players/{revieweeId}.stats` (`ratingCount`, `ratingSum`, `ratingAvg`),
+marks it `counted` (so it's idempotent) and notifies the player.
+
+Index: `(revieweeId ASC, createdAt DESC)`.
 
 ## `match_drafts/{draftId}`: unfinished matches
 
@@ -209,6 +221,8 @@ in `functions/test/rules/` (`npm run test:rules`) and cover:
   other players can't edit or cancel at all. Matches can't be deleted.
 - Drafts are private to their organizer.
 - Across all matches, a player can list only their own join requests.
+- Reviews: only people who were at the match, only about someone who was
+  there, once, within 7 days, never edited; the reviewer name must be real.
 - Chats: only members can read; you can post only as yourself; conversations
   can't be created by clients; you can move only your own read marker.
 - Device tokens are owner-only. The inbox can't be written by clients except to

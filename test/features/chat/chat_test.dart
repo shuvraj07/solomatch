@@ -16,19 +16,20 @@ import '../../helpers/pump_app.dart';
 
 final amit = testProfile(uid: 'amit', username: 'amit', fullName: 'Amit Karki');
 
-Conversation groupChat({Map<String, DateTime> readAt = const {}}) => Conversation(
-  id: 'match_m1',
-  type: ConversationType.group,
-  matchId: 'm1',
-  title: 'Saturday Night Football',
-  participantIds: const ['raj', 'amit', 'sita'],
-  participants: const {
-    'raj': ChatMember(name: 'Raj Shrestha'),
-    'amit': ChatMember(name: 'Amit Karki'),
-    'sita': ChatMember(name: 'Sita Rai'),
-  },
-  readAt: readAt,
-);
+Conversation groupChat({Map<String, DateTime> readAt = const {}}) =>
+    Conversation(
+      id: 'match_m1',
+      type: ConversationType.group,
+      matchId: 'm1',
+      title: 'Saturday Night Football',
+      participantIds: const ['raj', 'amit', 'sita'],
+      participants: const {
+        'raj': ChatMember(name: 'Raj Shrestha'),
+        'amit': ChatMember(name: 'Amit Karki'),
+        'sita': ChatMember(name: 'Sita Rai'),
+      },
+      readAt: readAt,
+    );
 
 void main() {
   group('Conversation', () {
