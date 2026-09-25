@@ -286,6 +286,79 @@ void main() {
       expect(venues.cancelled, {'booked1': 'Pitch repairs'});
     });
 
+    testWidgets('owner switches slots between booked and free', (tester) async {
+      venues = FakeVenueRepository(
+        owners: [hari],
+        venues: [dhuku],
+        slots: [
+          slot('a', DateTime(2026, 9, 25, 17)),
+          slot('b', DateTime(2026, 9, 25, 18)),
+        ],
+      );
+      await pumpApp(
+        tester,
+        auth: FakeAuthRepository(signedIn: ownerUser),
+        venues: venues,
+        now: testNow,
+      );
+      expect(find.text('0 booked · 2 free'), findsOneWidget);
+
+      // Quick switch: booked (phone / walk-in).
+      await tester.tapVisible(find.byKey(const Key('toggle_a')));
+      expect(venues.slots['a']!.bookedOffline, isTrue);
+      expect(find.text('1 booked · 1 free'), findsOneWidget);
+      expect(find.text('📞 Booked by you'), findsOneWidget);
+
+      // And back to free.
+      await tester.tapVisible(find.byKey(const Key('toggle_a')));
+      expect(venues.slots['a']!.isFree, isTrue);
+
+      // From the slot sheet, with a note.
+      await tester.tapVisible(find.byKey(const Key('slot_b')));
+      await tester.enterText(
+        find.byKey(const Key('offlineNoteField')),
+        'Ram’s team',
+      );
+      await tester.tapVisible(find.byKey(const Key('markBookedButton')));
+      expect(venues.slots['b']!.offlineNote, 'Ram’s team');
+      expect(find.text('📞 Booked by you · Ram’s team'), findsOneWidget);
+
+      await tester.tapVisible(find.byKey(const Key('slot_b')));
+      await tester.tapVisible(find.byKey(const Key('markFreeButton')));
+      expect(venues.slots['b']!.isFree, isTrue);
+    });
+
+    testWidgets('app bookings have no switch (cancel from the sheet)', (
+      tester,
+    ) async {
+      venues = FakeVenueRepository(
+        owners: [hari],
+        venues: [dhuku],
+        slots: [
+          slot(
+            'app',
+            DateTime(2026, 9, 25, 18),
+            status: SlotStatus.booked,
+            booking: (
+              matchId: 'm1',
+              matchTitle: 'Friday Futsal',
+              organizerId: 'raj',
+              organizerName: 'Raj Shrestha',
+            ),
+          ),
+        ],
+      );
+      await pumpApp(
+        tester,
+        auth: FakeAuthRepository(signedIn: ownerUser),
+        venues: venues,
+        now: testNow,
+      );
+      expect(find.byKey(const Key('toggle_app')), findsNothing);
+      await tester.tapVisible(find.byKey(const Key('slot_app')));
+      expect(find.byKey(const Key('cancelBookingButton')), findsOneWidget);
+    });
+
     testWidgets('owners stay in the owner app', (tester) async {
       await pumpApp(
         tester,
@@ -321,11 +394,12 @@ void main() {
         venues: [dhuku],
         slots: [
           slot('s1', tomorrow6pm),
+          // Booked by the owner (phone): players see it as taken.
           slot(
             's2',
             tomorrow6pm.add(const Duration(hours: 1)),
             status: SlotStatus.booked,
-          ),
+          ).copyWith(bookedOffline: true),
         ],
       ),
     );

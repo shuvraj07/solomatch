@@ -34,8 +34,18 @@ abstract interface class VenueRepository {
 
   Future<void> addSlots(String venueId, List<NewSlot> slots);
 
-  /// Removes a free slot.
+  /// Removes a free (or offline-booked) slot.
   Future<void> deleteSlot(String venueId, String slotId);
+
+  /// Owner marks a free slot booked outside the app (phone, walk-in).
+  Future<void> markBookedOffline(
+    String venueId,
+    String slotId, {
+    String note = '',
+  });
+
+  /// Owner frees a slot they had marked booked.
+  Future<void> markFree(String venueId, String slotId);
 
   /// Owner cancels a booked slot; the organizer is notified.
   Future<void> cancelBooking(String slotId, {String reason = ''});

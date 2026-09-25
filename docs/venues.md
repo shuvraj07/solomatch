@@ -35,9 +35,17 @@ server-written `booking`.
   into 60, 90 or 120-minute slots, optionally repeated for 7, 14 or 28 days
   on chosen weekdays (`SlotPlanner`, which is unit-tested). It skips times
   that have already started and times that overlap existing slots.
-- The owner can remove a **free** slot. The rules forbid editing or deleting
-  a booked one.
-- Only the server moves a slot to `booked`.
+- Each free slot has a **Booked / Free switch**. The owner uses it for
+  bookings made outside the app (phone, walk-in). The slot becomes
+  `status: 'booked'` with `booking: {offline: true, note, markedAt}`, and
+  organizers can no longer book it. Tapping the slot lets the owner add a
+  short note (e.g. "Ram's team"). Slots are readable by any signed-in user,
+  so the note shouldn't hold phone numbers.
+- The owner can flip an offline booking back to free, or remove free and
+  offline-booked slots.
+- **App bookings** (made by an organizer's match) have no switch. Only the
+  server books them, and the owner cancels them with **Cancel booking**, so
+  the organizer is always told.
 
 ## Booking flow
 

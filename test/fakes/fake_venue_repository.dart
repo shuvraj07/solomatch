@@ -128,6 +128,30 @@ class FakeVenueRepository implements VenueRepository {
   }
 
   @override
+  Future<void> markBookedOffline(
+    String venueId,
+    String slotId, {
+    String note = '',
+  }) async {
+    slots[slotId] = slots[slotId]!.copyWith(
+      status: SlotStatus.booked,
+      bookedOffline: true,
+      offlineNote: note.trim(),
+    );
+    _changed();
+  }
+
+  @override
+  Future<void> markFree(String venueId, String slotId) async {
+    slots[slotId] = slots[slotId]!.copyWith(
+      status: SlotStatus.free,
+      bookedOffline: false,
+      offlineNote: '',
+    );
+    _changed();
+  }
+
+  @override
   Future<void> cancelBooking(String slotId, {String reason = ''}) async {
     cancelled[slotId] = reason;
     slots.remove(slotId);

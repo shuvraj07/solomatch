@@ -55,7 +55,8 @@ export async function deleteAccount(deps: DeleteDeps, uid: string): Promise<Dele
   const booked = await venueRef.collection('slots').where('status', '==', 'booked').get();
   const notices: Outgoing[] = [];
   for (const slot of booked.docs) {
-    if (slot.data().startAt.toDate() <= now) continue;
+    // Offline (phone/walk-in) bookings have no match or organizer to tell.
+    if (slot.data().startAt.toDate() <= now || !slot.data().booking?.matchId) continue;
     try {
       notices.push(
         ...(await cancelBookingByVenue(db, {

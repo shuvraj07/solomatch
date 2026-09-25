@@ -524,11 +524,36 @@ service cloud.firestore {
         allow create: if isUser(venueId)
           && validFreeSlot(incoming())
           && incoming().createdAt == request.time;
-        allow update: if isUser(venueId)
-          && resource.data.status == 'free'
-          && changedKeys().hasOnly(['startAt', 'endAt', 'price'])
-          && validFreeSlot(incoming());
-        allow delete: if isUser(venueId) && resource.data.status == 'free';
+        // Booked by the owner (phone or walk-in), not through the app.
+        function bookedOffline(d) {
+          return d.status == 'booked' && d.get('booking', {}).get('offline', false) == true;
+        }
+
+        allow update: if isUser(venueId) && (
+          // Edit a free slot.
+          (resource.data.status == 'free'
+            && changedKeys().hasOnly(['startAt', 'endAt', 'price'])
+            && validFreeSlot(incoming()))
+          ||
+          // Mark a free slot booked (offline booking).
+          (resource.data.status == 'free'
+            && changedKeys().hasOnly(['status', 'booking'])
+            && incoming().status == 'booked'
+            && incoming().booking.keys().hasOnly(['offline', 'note', 'markedAt'])
+            && incoming().booking.offline == true
+            && incoming().booking.note is string
+            && incoming().booking.note.size() <= 80
+            && incoming().booking.markedAt == request.time)
+          ||
+          // Free an offline booking again. App bookings are cancelled via
+          // the cancelVenueBooking function so the organizer is told.
+          (bookedOffline(resource.data)
+            && changedKeys().hasOnly(['status', 'booking'])
+            && incoming().status == 'free'
+            && !('booking' in incoming()))
+        );
+        allow delete: if isUser(venueId)
+          && (resource.data.status == 'free' || bookedOffline(resource.data));
       }
 
       // ----- ratings: venues/{venueId}/ratings/{matchId}_{uid} -----

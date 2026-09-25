@@ -92,12 +92,22 @@ abstract class VenueSlot with _$VenueSlot {
     /// Price for the whole pitch for this slot, NPR.
     required int price,
     required SlotStatus status,
+
+    /// Booked through the app (by an organizer's match).
     SlotBooking? booking,
+
+    /// Booked by the owner outside the app (phone, walk-in). The note is
+    /// only for the owner, e.g. "Ram 9800000000".
+    @Default(false) bool bookedOffline,
+    @Default('') String offlineNote,
   }) = _VenueSlot;
 
   const VenueSlot._();
 
   bool get isFree => status == SlotStatus.free;
+
+  /// Booked through a match in the app (cancel via the server).
+  bool get bookedInApp => !isFree && !bookedOffline;
 
   bool overlaps(DateTime start, DateTime end) =>
       start.isBefore(endAt) && end.isAfter(startAt);

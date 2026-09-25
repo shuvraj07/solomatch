@@ -47,44 +47,45 @@ class _OwnerScheduleScreenState extends ConsumerState<OwnerScheduleScreen> {
     }
   }
 
+  /// Flips a free slot to booked (phone/walk-in) or back to free.
+  Future<void> _toggle(VenueSlot slot, {String note = ''}) {
+    final repo = ref.read(venueRepositoryProvider);
+    return runWithFeedback(
+      context,
+      () => slot.isFree
+          ? repo.markBookedOffline(slot.venueId, slot.id, note: note)
+          : repo.markFree(slot.venueId, slot.id),
+    );
+  }
+
   Future<void> _openSlot(VenueSlot slot) async {
-    if (slot.isFree) {
-      final remove = await showDialog<bool>(
+    if (slot.bookedInApp) {
+      await showModalBottomSheet<void>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(Formatters.timeRange(slot.startAt, slot.endAt)),
-          content: const Text(
-            'This slot is free. Remove it so organizers can’t book it?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Keep'),
-            ),
-            FilledButton(
-              key: const Key('removeSlotButton'),
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Remove slot'),
-            ),
-          ],
-        ),
+        showDragHandle: true,
+        isScrollControlled: true,
+        builder: (_) => _BookingSheet(slot: slot),
       );
-      if (remove == true && mounted) {
+      return;
+    }
+    final choice = await showModalBottomSheet<_SlotChoice>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (_) => _OwnSlotSheet(slot: slot),
+    );
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case _Toggle(:final note):
+        await _toggle(slot, note: note);
+      case _Remove():
         await runWithFeedback(
           context,
           () => ref
               .read(venueRepositoryProvider)
               .deleteSlot(slot.venueId, slot.id),
         );
-      }
-      return;
     }
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (_) => _BookingSheet(slot: slot),
-    );
   }
 
   @override
@@ -163,12 +164,37 @@ class _OwnerScheduleScreenState extends ConsumerState<OwnerScheduleScreen> {
                   return SlotTile(
                     slot: s,
                     onTap: () => _openSlot(s),
-                    subtitle: b == null
-                        ? null
-                        : '📅 ${b.matchTitle} · by ${b.organizerName}',
-                    trailing: s.isFree
-                        ? const Text('Free')
-                        : const Icon(Icons.chevron_right_rounded),
+                    subtitle: switch (s) {
+                      _ when b != null =>
+                        '📅 ${b.matchTitle} · by ${b.organizerName}',
+                      VenueSlot(bookedOffline: true, :final offlineNote) =>
+                        '📞 Booked by you'
+                            '${offlineNote.isEmpty ? '' : ' · $offlineNote'}',
+                      _ => null,
+                    },
+                    // App bookings are cancelled from the sheet (the
+                    // organizer is told); the rest flip with the switch.
+                    trailing: s.bookedInApp
+                        ? const Icon(Icons.chevron_right_rounded)
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                height: 32,
+                                child: FittedBox(
+                                  child: Switch(
+                                    key: Key('toggle_${s.id}'),
+                                    value: !s.isFree,
+                                    onChanged: (_) => _toggle(s),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                s.isFree ? 'Free' : 'Booked',
+                                style: Theme.of(context).textTheme.labelSmall,
+                              ),
+                            ],
+                          ),
                   );
                 },
               ),
@@ -264,6 +290,103 @@ class _BookingSheetState extends ConsumerState<_BookingSheet> {
             onPressed: _busy ? null : _cancel,
             icon: const Icon(Icons.event_busy_rounded),
             label: const Text('Cancel booking'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+sealed class _SlotChoice {
+  const _SlotChoice();
+}
+
+final class _Toggle extends _SlotChoice {
+  const _Toggle([this.note = '']);
+
+  final String note;
+}
+
+final class _Remove extends _SlotChoice {
+  const _Remove();
+}
+
+/// Options for a slot the owner controls: mark booked (with a note) or
+/// free, or remove it.
+class _OwnSlotSheet extends StatefulWidget {
+  const _OwnSlotSheet({required this.slot});
+
+  final VenueSlot slot;
+
+  @override
+  State<_OwnSlotSheet> createState() => _OwnSlotSheetState();
+}
+
+class _OwnSlotSheetState extends State<_OwnSlotSheet> {
+  final _note = TextEditingController();
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.slot;
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screen,
+        0,
+        AppSpacing.screen,
+        MediaQuery.viewInsetsOf(context).bottom + AppSpacing.xl,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            Formatters.timeRange(s.startAt, s.endAt),
+            style: theme.textTheme.titleLarge,
+          ),
+          Text(
+            s.isFree
+                ? 'Free: organizers can book this in the app.'
+                : 'Booked by you (phone or walk-in)'
+                      '${s.offlineNote.isEmpty ? '' : ': ${s.offlineNote}'}',
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          if (s.isFree) ...[
+            TextField(
+              key: const Key('offlineNoteField'),
+              controller: _note,
+              maxLength: 80,
+              decoration: const InputDecoration(
+                labelText: 'Booked for (optional)',
+                hintText: 'e.g. Ram’s team',
+                helperText: 'A short note for you. Avoid phone numbers.',
+              ),
+            ),
+            FilledButton.icon(
+              key: const Key('markBookedButton'),
+              onPressed: () => Navigator.pop(context, _Toggle(_note.text)),
+              icon: const Icon(Icons.event_busy_rounded),
+              label: const Text('Mark as booked'),
+            ),
+          ] else
+            FilledButton.icon(
+              key: const Key('markFreeButton'),
+              onPressed: () => Navigator.pop(context, const _Toggle()),
+              icon: const Icon(Icons.event_available_rounded),
+              label: const Text('Mark as free'),
+            ),
+          const SizedBox(height: AppSpacing.sm),
+          OutlinedButton.icon(
+            key: const Key('removeSlotButton'),
+            onPressed: () => Navigator.pop(context, const _Remove()),
+            icon: const Icon(Icons.delete_outline_rounded),
+            label: const Text('Remove slot'),
           ),
         ],
       ),

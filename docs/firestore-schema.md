@@ -247,10 +247,13 @@ One per owner; the document ID is the owner's uid.
 
 ### `venues/{venueId}/slots/{slotId}`
 
-`{startAt, endAt, price, status: 'free' | 'booked', booking 🔒 {matchId,
-matchTitle, organizerId, organizerName, bookedAt}, createdAt}`. The owner
-creates free future slots (30 min–6 h) and can edit or delete them while
-they're free. Only `publishDraft` books a slot; only Cloud Functions cancel.
+`{startAt, endAt, price, status: 'free' | 'booked', booking, createdAt}`.
+`booking` is either an app booking 🔒 `{matchId, matchTitle, organizerId,
+organizerName, bookedAt}` (written only by `publishDraft`, cancelled only by
+Cloud Functions) or an offline booking `{offline: true, note (≤ 80),
+markedAt}` that the owner sets and clears. The owner creates free future
+slots (30 min–6 h) and can edit free slots, and delete free or
+offline-booked ones.
 
 ### `venues/{venueId}/ratings/{matchId}_{uid}`
 

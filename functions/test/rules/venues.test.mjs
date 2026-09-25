@@ -3,6 +3,7 @@ import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
   Timestamp,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   serverTimestamp,
@@ -149,6 +150,38 @@ describe('venue owners, venues, slots and venue ratings', () => {
     );
     await assertFails(deleteDoc(doc(fs, 'venues/hari/slots/s1')));
     await assertFails(updateDoc(doc(fs, 'venues/hari/slots/s1'), { price: 1 }));
+  });
+
+  test('owner marks a slot booked (phone/walk-in) and free again', async () => {
+    await seedOwner('hari');
+    const fs = db(env, 'hari');
+    const ref = doc(fs, 'venues/hari/slots/s1');
+    await assertSucceeds(setDoc(ref, slotDoc()));
+
+    const offline = { offline: true, note: 'Ram 98000', markedAt: serverTimestamp() };
+    await assertFails(updateDoc(doc(db(env, 'sita'), 'venues/hari/slots/s1'), { status: 'booked', booking: offline }));
+    await assertFails(updateDoc(ref, { status: 'booked', booking: { ...offline, matchId: 'fake' } }));
+    await assertFails(updateDoc(ref, { status: 'booked', booking: { ...offline, offline: false } }));
+    await assertSucceeds(updateDoc(ref, { status: 'booked', booking: offline }));
+
+    // While booked offline, the app can't book it and the owner can free it.
+    await assertSucceeds(updateDoc(ref, { status: 'free', booking: deleteField() }));
+    await assertSucceeds(updateDoc(ref, { status: 'booked', booking: offline }));
+    await assertSucceeds(deleteDoc(ref));
+  });
+
+  test('an app booking cannot be freed directly by the owner', async () => {
+    await seedOwner('hari');
+    await env.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore(), 'venues/hari/slots/s1'), {
+        ...slotDoc({ createdAt: at(0) }),
+        status: 'booked',
+        booking: { matchId: 'm1', organizerId: 'raj' },
+      }),
+    );
+    const ref = doc(db(env, 'hari'), 'venues/hari/slots/s1');
+    await assertFails(updateDoc(ref, { status: 'free', booking: deleteField() }));
+    await assertFails(deleteDoc(ref));
   });
 
   describe('venue ratings', () => {

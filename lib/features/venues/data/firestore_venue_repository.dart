@@ -146,6 +146,30 @@ class FirestoreVenueRepository implements VenueRepository {
       _guard(() => _slots(venueId).doc(slotId).delete());
 
   @override
+  Future<void> markBookedOffline(
+    String venueId,
+    String slotId, {
+    String note = '',
+  }) => _guard(
+    () => _slots(venueId).doc(slotId).update({
+      'status': 'booked',
+      'booking': {
+        'offline': true,
+        'note': note.trim(),
+        'markedAt': FieldValue.serverTimestamp(),
+      },
+    }),
+  );
+
+  @override
+  Future<void> markFree(String venueId, String slotId) => _guard(
+    () =>
+        _slots(venueId)
+            .doc(slotId)
+            .update({'status': 'free', 'booking': FieldValue.delete()}),
+  );
+
+  @override
   Future<void> cancelBooking(String slotId, {String reason = ''}) async {
     try {
       await _functions.httpsCallable('cancelVenueBooking').call<Object?>({
@@ -269,8 +293,10 @@ abstract final class VenueMapper {
     endAt: (d['endAt'] as Timestamp).toDate(),
     price: (d['price'] as num?)?.toInt() ?? 0,
     status: d['status'] == 'booked' ? SlotStatus.booked : SlotStatus.free,
+    bookedOffline: (d['booking'] as Map?)?['offline'] == true,
+    offlineNote: (d['booking'] as Map?)?['note'] as String? ?? '',
     booking: switch (d['booking']) {
-      final Map<String, dynamic> b => (
+      final Map<String, dynamic> b when b['offline'] != true => (
         matchId: b['matchId'] as String? ?? '',
         matchTitle: b['matchTitle'] as String? ?? '',
         organizerId: b['organizerId'] as String? ?? '',

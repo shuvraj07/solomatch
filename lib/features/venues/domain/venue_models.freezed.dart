@@ -605,7 +605,10 @@ as VenueRatingSummary?,
 mixin _$VenueSlot {
 
  String get id; String get venueId; DateTime get startAt; DateTime get endAt;/// Price for the whole pitch for this slot, NPR.
- int get price; SlotStatus get status; SlotBooking? get booking;
+ int get price; SlotStatus get status;/// Booked through the app (by an organizer's match).
+ SlotBooking? get booking;/// Booked by the owner outside the app (phone, walk-in). The note is
+/// only for the owner, e.g. "Ram 9800000000".
+ bool get bookedOffline; String get offlineNote;
 /// Create a copy of VenueSlot
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -617,20 +620,20 @@ $VenueSlotCopyWith<VenueSlot> get copyWith => _$VenueSlotCopyWithImpl<VenueSlot>
 @override
 bool operator ==(Object other) {
   final _this = this as VenueSlot;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VenueSlot&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.venueId, _this.venueId) || other.venueId == _this.venueId)&&(identical(other.startAt, _this.startAt) || other.startAt == _this.startAt)&&(identical(other.endAt, _this.endAt) || other.endAt == _this.endAt)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.booking, _this.booking) || other.booking == _this.booking));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VenueSlot&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.venueId, _this.venueId) || other.venueId == _this.venueId)&&(identical(other.startAt, _this.startAt) || other.startAt == _this.startAt)&&(identical(other.endAt, _this.endAt) || other.endAt == _this.endAt)&&(identical(other.price, _this.price) || other.price == _this.price)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.booking, _this.booking) || other.booking == _this.booking)&&(identical(other.bookedOffline, _this.bookedOffline) || other.bookedOffline == _this.bookedOffline)&&(identical(other.offlineNote, _this.offlineNote) || other.offlineNote == _this.offlineNote));
 }
 
 
 @override
 int get hashCode {
   final _this = this as VenueSlot;
-  return Object.hash(runtimeType,_this.id,_this.venueId,_this.startAt,_this.endAt,_this.price,_this.status,_this.booking);
+  return Object.hash(runtimeType,_this.id,_this.venueId,_this.startAt,_this.endAt,_this.price,_this.status,_this.booking,_this.bookedOffline,_this.offlineNote);
 }
 
 @override
 String toString() {
   final _this = this as VenueSlot;
-  return 'VenueSlot(id: ${_this.id}, venueId: ${_this.venueId}, startAt: ${_this.startAt}, endAt: ${_this.endAt}, price: ${_this.price}, status: ${_this.status}, booking: ${_this.booking})';
+  return 'VenueSlot(id: ${_this.id}, venueId: ${_this.venueId}, startAt: ${_this.startAt}, endAt: ${_this.endAt}, price: ${_this.price}, status: ${_this.status}, booking: ${_this.booking}, bookedOffline: ${_this.bookedOffline}, offlineNote: ${_this.offlineNote})';
 }
 
 
@@ -641,7 +644,7 @@ abstract mixin class $VenueSlotCopyWith<$Res>  {
   factory $VenueSlotCopyWith(VenueSlot value, $Res Function(VenueSlot) _then) = _$VenueSlotCopyWithImpl;
 @useResult
 $Res call({
- String id, String venueId, DateTime startAt, DateTime endAt, int price, SlotStatus status, SlotBooking? booking
+ String id, String venueId, DateTime startAt, DateTime endAt, int price, SlotStatus status, SlotBooking? booking, bool bookedOffline, String offlineNote
 });
 
 
@@ -658,7 +661,7 @@ class _$VenueSlotCopyWithImpl<$Res>
 
 /// Create a copy of VenueSlot
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? venueId = null,Object? startAt = null,Object? endAt = null,Object? price = null,Object? status = null,Object? booking = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? venueId = null,Object? startAt = null,Object? endAt = null,Object? price = null,Object? status = null,Object? booking = freezed,Object? bookedOffline = null,Object? offlineNote = null,}) {
   return _then(VenueSlot(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,venueId: null == venueId ? _self.venueId : venueId // ignore: cast_nullable_to_non_nullable
@@ -667,7 +670,9 @@ as DateTime,endAt: null == endAt ? _self.endAt : endAt // ignore: cast_nullable_
 as DateTime,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SlotStatus,booking: freezed == booking ? _self.booking : booking // ignore: cast_nullable_to_non_nullable
-as SlotBooking?,
+as SlotBooking?,bookedOffline: null == bookedOffline ? _self.bookedOffline : bookedOffline // ignore: cast_nullable_to_non_nullable
+as bool,offlineNote: null == offlineNote ? _self.offlineNote : offlineNote // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -752,10 +757,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String venueId,  DateTime startAt,  DateTime endAt,  int price,  SlotStatus status,  SlotBooking? booking)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String venueId,  DateTime startAt,  DateTime endAt,  int price,  SlotStatus status,  SlotBooking? booking,  bool bookedOffline,  String offlineNote)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VenueSlot() when $default != null:
-return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_that.status,_that.booking);case _:
+return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_that.status,_that.booking,_that.bookedOffline,_that.offlineNote);case _:
   return orElse();
 
 }
@@ -773,10 +778,10 @@ return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String venueId,  DateTime startAt,  DateTime endAt,  int price,  SlotStatus status,  SlotBooking? booking)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String venueId,  DateTime startAt,  DateTime endAt,  int price,  SlotStatus status,  SlotBooking? booking,  bool bookedOffline,  String offlineNote)  $default,) {final _that = this;
 switch (_that) {
 case _VenueSlot():
-return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_that.status,_that.booking);case _:
+return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_that.status,_that.booking,_that.bookedOffline,_that.offlineNote);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -793,10 +798,10 @@ return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String venueId,  DateTime startAt,  DateTime endAt,  int price,  SlotStatus status,  SlotBooking? booking)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String venueId,  DateTime startAt,  DateTime endAt,  int price,  SlotStatus status,  SlotBooking? booking,  bool bookedOffline,  String offlineNote)?  $default,) {final _that = this;
 switch (_that) {
 case _VenueSlot() when $default != null:
-return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_that.status,_that.booking);case _:
+return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_that.status,_that.booking,_that.bookedOffline,_that.offlineNote);case _:
   return null;
 
 }
@@ -808,7 +813,7 @@ return $default(_that.id,_that.venueId,_that.startAt,_that.endAt,_that.price,_th
 
 
 class _VenueSlot extends VenueSlot {
-  const _VenueSlot({required this.id, required this.venueId, required this.startAt, required this.endAt, required this.price, required this.status, this.booking}): super._();
+  const _VenueSlot({required this.id, required this.venueId, required this.startAt, required this.endAt, required this.price, required this.status, this.booking, this.bookedOffline = false, this.offlineNote = ''}): super._();
   
 
 @override final  String id;
@@ -818,7 +823,12 @@ class _VenueSlot extends VenueSlot {
 /// Price for the whole pitch for this slot, NPR.
 @override final  int price;
 @override final  SlotStatus status;
+/// Booked through the app (by an organizer's match).
 @override final  SlotBooking? booking;
+/// Booked by the owner outside the app (phone, walk-in). The note is
+/// only for the owner, e.g. "Ram 9800000000".
+@override@JsonKey() final  bool bookedOffline;
+@override@JsonKey() final  String offlineNote;
 
 /// Create a copy of VenueSlot
 /// with the given fields replaced by the non-null parameter values.
@@ -830,18 +840,18 @@ _$VenueSlotCopyWith<_VenueSlot> get copyWith => __$VenueSlotCopyWithImpl<_VenueS
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VenueSlot&&(identical(other.id, id) || other.id == id)&&(identical(other.venueId, venueId) || other.venueId == venueId)&&(identical(other.startAt, startAt) || other.startAt == startAt)&&(identical(other.endAt, endAt) || other.endAt == endAt)&&(identical(other.price, price) || other.price == price)&&(identical(other.status, status) || other.status == status)&&(identical(other.booking, booking) || other.booking == booking));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _VenueSlot&&(identical(other.id, id) || other.id == id)&&(identical(other.venueId, venueId) || other.venueId == venueId)&&(identical(other.startAt, startAt) || other.startAt == startAt)&&(identical(other.endAt, endAt) || other.endAt == endAt)&&(identical(other.price, price) || other.price == price)&&(identical(other.status, status) || other.status == status)&&(identical(other.booking, booking) || other.booking == booking)&&(identical(other.bookedOffline, bookedOffline) || other.bookedOffline == bookedOffline)&&(identical(other.offlineNote, offlineNote) || other.offlineNote == offlineNote));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,venueId,startAt,endAt,price,status,booking);
+    return Object.hash(runtimeType,id,venueId,startAt,endAt,price,status,booking,bookedOffline,offlineNote);
 }
 
 @override
 String toString() {
-    return 'VenueSlot(id: $id, venueId: $venueId, startAt: $startAt, endAt: $endAt, price: $price, status: $status, booking: $booking)';
+    return 'VenueSlot(id: $id, venueId: $venueId, startAt: $startAt, endAt: $endAt, price: $price, status: $status, booking: $booking, bookedOffline: $bookedOffline, offlineNote: $offlineNote)';
 }
 
 
@@ -852,7 +862,7 @@ abstract mixin class _$VenueSlotCopyWith<$Res> implements $VenueSlotCopyWith<$Re
   factory _$VenueSlotCopyWith(_VenueSlot value, $Res Function(_VenueSlot) _then) = __$VenueSlotCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String venueId, DateTime startAt, DateTime endAt, int price, SlotStatus status, SlotBooking? booking
+ String id, String venueId, DateTime startAt, DateTime endAt, int price, SlotStatus status, SlotBooking? booking, bool bookedOffline, String offlineNote
 });
 
 
@@ -869,7 +879,7 @@ class __$VenueSlotCopyWithImpl<$Res>
 
 /// Create a copy of VenueSlot
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? venueId = null,Object? startAt = null,Object? endAt = null,Object? price = null,Object? status = null,Object? booking = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? venueId = null,Object? startAt = null,Object? endAt = null,Object? price = null,Object? status = null,Object? booking = freezed,Object? bookedOffline = null,Object? offlineNote = null,}) {
   return _then(_VenueSlot(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,venueId: null == venueId ? _self.venueId : venueId // ignore: cast_nullable_to_non_nullable
@@ -878,7 +888,9 @@ as DateTime,endAt: null == endAt ? _self.endAt : endAt // ignore: cast_nullable_
 as DateTime,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as int,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as SlotStatus,booking: freezed == booking ? _self.booking : booking // ignore: cast_nullable_to_non_nullable
-as SlotBooking?,
+as SlotBooking?,bookedOffline: null == bookedOffline ? _self.bookedOffline : bookedOffline // ignore: cast_nullable_to_non_nullable
+as bool,offlineNote: null == offlineNote ? _self.offlineNote : offlineNote // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
