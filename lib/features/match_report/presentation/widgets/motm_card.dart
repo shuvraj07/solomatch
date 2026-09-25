@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/utils/formatters.dart';
@@ -53,6 +55,8 @@ class MotmCard extends ConsumerWidget {
                   for (final w in result.winners)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
+                      onTap: () => context.push(AppRoutes.playerProfile(w.uid)),
+                      trailing: const Icon(Icons.chevron_right_rounded),
                       leading: PlayerAvatar(name: w.name, photoUrl: w.photoUrl),
                       title: Text(w.name, key: Key('motmWinner_${w.uid}')),
                       subtitle: Text(

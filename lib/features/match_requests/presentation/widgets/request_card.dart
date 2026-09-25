@@ -1,5 +1,7 @@
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../shared/widgets/player_avatar.dart';
 import '../../../../shared/widgets/position_badge.dart';
@@ -33,23 +35,28 @@ class RequestCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                PlayerAvatar(name: p.name, photoUrl: p.photoUrl),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(p.name, style: theme.textTheme.titleMedium),
-                      Text(
-                        '@${p.username} · ${p.skillLevel.label}',
-                        style: TextStyle(color: muted),
-                      ),
-                    ],
+            InkWell(
+              key: Key('requestProfile_${p.uid}'),
+              onTap: () => context.push(AppRoutes.playerProfile(p.uid)),
+              child: Row(
+                children: [
+                  PlayerAvatar(name: p.name, photoUrl: p.photoUrl),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(p.name, style: theme.textTheme.titleMedium),
+                        Text(
+                          '@${p.username} · ${p.skillLevel.label}',
+                          style: TextStyle(color: muted),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const Icon(Icons.chevron_right_rounded),
+                ],
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Wrap(

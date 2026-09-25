@@ -13,6 +13,7 @@ class MatchCard extends StatelessWidget {
     required this.match,
     required this.onTap,
     this.distanceLabel,
+    this.note,
   });
 
   final FootballMatch match;
@@ -20,6 +21,9 @@ class MatchCard extends StatelessWidget {
 
   /// e.g. "2.4 km". Filled in once location-aware discovery lands.
   final String? distanceLabel;
+
+  /// The viewer's relation to the match, e.g. "⚽ You're playing".
+  final String? note;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +77,15 @@ class MatchCard extends StatelessWidget {
                 '${match.currentPlayers}/${match.maxPlayers} players · '
                     '${match.format.label} · ${match.price.display}',
               ),
+              if (note case final n?) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  n,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
               if (needs.isNotEmpty && !match.isFull) ...[
                 const SizedBox(height: AppSpacing.md),
                 Wrap(

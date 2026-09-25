@@ -302,6 +302,13 @@ service cloud.firestore {
       }
     }
 
+    // ---------- "My matches": my requests across all matches ----------
+    // Collection-group reads only return a player's own requests. The
+    // query must filter on player.uid == my uid for this to pass.
+    match /{path=**}/requests/{playerId} {
+      allow read: if signedIn() && resource.data.player.uid == request.auth.uid;
+    }
+
     // ---------- match drafts (organizer-private) ----------
 
     match /match_drafts/{draftId} {

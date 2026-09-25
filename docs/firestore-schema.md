@@ -83,7 +83,8 @@ edit descriptive text or cancel. Roster counts and status belong to the server
 | `motmClosed` 🔒, `motm` 🔒 | bool, map | `motm = {winners: [{uid, name, username, photoUrl}], votes, totalVotes}`. Several winners means a tie |
 | `createdAt`, `updatedAt` | timestamp | |
 
-Indexes: `(status, startAt)` for the upcoming list and kick-off,
+Indexes: `(organizer.uid, startAt DESC)` for "My matches → Created",
+`(status, startAt)` for the upcoming list and kick-off,
 `(status, endAt)` for completion, and `(status, motmClosed, votingClosesAt)`
 for closing MOTM voting.
 
@@ -107,7 +108,10 @@ be open and not started), withdraw `pending` → `cancelled`, and request again
 from `cancelled`. `rejected` is final. Accept and reject happen only in Cloud
 Functions.
 
-Index: `(status ASC, createdAt ASC)` for the organizer's pending list.
+Indexes: `(status ASC, createdAt ASC)` for the organizer's pending list, and a
+**collection-group** index `(player.uid ASC, match.startAt DESC)` for "My
+matches". The collection-group rule returns only your own requests:
+`resource.data.player.uid == auth.uid`.
 
 ## `matches/{matchId}/roster/{playerId}`: accepted players 🔒
 
@@ -154,6 +158,7 @@ in `functions/test/rules/` (`npm run test:rules`) and cover:
 - Organizers can't change capacity, counters or status (except cancel), and
   other players can't edit or cancel at all. Matches can't be deleted.
 - Drafts are private to their organizer.
+- Across all matches, a player can list only their own join requests.
 - Join requests can only be created by the player themselves, with a player
   card matching their real profile (no faked rating or games played), on an
   open, not-started match they don't organize. Nobody can set `accepted` or

@@ -62,7 +62,7 @@ npm run test:rules       # Firestore security rules
 | 4b | Match report & awards: auto status, goals/assists/cards, Man of the Match | ✅ |
 | 5 | Notifications + reminders | ⏳ |
 | 6 | Chat | ⏳ |
-| 7 | My Matches + player profiles | ⏳ |
+| 7 | My Matches + public player profiles | ✅ |
 | 8 | Favorites + football catalog | ⏳ |
 | 9 | Reviews, safety, settings | ⏳ |
 | 10 | Hardening, integration tests, CI | ⏳ |

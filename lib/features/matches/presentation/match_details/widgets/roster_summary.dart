@@ -1,5 +1,7 @@
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../../../app/router/app_routes.dart';
 import '../../../../../app/theme/app_spacing.dart';
 import '../../../../../shared/models/position_group.dart';
 import '../../../../../shared/widgets/player_avatar.dart';
@@ -77,36 +79,43 @@ class RosterSummary extends StatelessWidget {
                         ],
                       ),
                       for (final entry in roster.where((e) => e.group == group))
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            left: 36,
-                            top: AppSpacing.xs,
+                        InkWell(
+                          key: Key('rosterPlayer_${entry.player.uid}'),
+                          onTap: () => context.push(
+                            AppRoutes.playerProfile(entry.player.uid),
                           ),
-                          child: Row(
-                            children: [
-                              PlayerAvatar(
-                                name: entry.player.name,
-                                photoUrl: entry.player.photoUrl,
-                                radius: 12,
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              Expanded(
-                                child: Text(
-                                  entry.player.name,
-                                  overflow: TextOverflow.ellipsis,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              left: 36,
+                              top: AppSpacing.xs,
+                              bottom: AppSpacing.xs,
+                            ),
+                            child: Row(
+                              children: [
+                                PlayerAvatar(
+                                  name: entry.player.name,
+                                  photoUrl: entry.player.photoUrl,
+                                  radius: 12,
                                 ),
-                              ),
-                              Text(
-                                [
-                                  ?match.report
-                                      ?.lineFor(entry.player.uid)
-                                      .summary,
-                                  entry.player.primaryPosition.shortLabel,
-                                ].where((s) => s.isNotEmpty).join('  '),
-                                key: Key('rosterLine_${entry.player.uid}'),
-                                style: TextStyle(color: muted),
-                              ),
-                            ],
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(
+                                    entry.player.name,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Text(
+                                  [
+                                    ?match.report
+                                        ?.lineFor(entry.player.uid)
+                                        .summary,
+                                    entry.player.primaryPosition.shortLabel,
+                                  ].where((s) => s.isNotEmpty).join('  '),
+                                  key: Key('rosterLine_${entry.player.uid}'),
+                                  style: TextStyle(color: muted),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                     ],

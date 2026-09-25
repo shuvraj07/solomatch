@@ -15,6 +15,11 @@ abstract final class AppRoutes {
   static const messages = '/messages';
   static const profile = '/profile';
 
+  static const myMatches = '/my-matches';
+
+  static const playerProfilePattern = '/players/:uid';
+  static String playerProfile(String uid) => '/players/$uid';
+
   /// Full-screen flows pushed above the tab shell.
   static const createMatch = '/matches/create';
 

@@ -284,21 +284,26 @@ class _Loaded extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(m.title, style: theme.textTheme.headlineMedium),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              PlayerAvatar(
-                name: m.organizer.name,
-                photoUrl: m.organizer.photoUrl,
-                radius: 16,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  'Organized by ${m.organizer.name}',
-                  style: theme.textTheme.bodyMedium,
+          InkWell(
+            key: const Key('organizerLink'),
+            onTap: () => context.push(AppRoutes.playerProfile(m.organizer.uid)),
+            child: Row(
+              children: [
+                PlayerAvatar(
+                  name: m.organizer.name,
+                  photoUrl: m.organizer.photoUrl,
+                  radius: 16,
                 ),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    'Organized by ${m.organizer.name}',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+                const Icon(Icons.chevron_right_rounded),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           info(

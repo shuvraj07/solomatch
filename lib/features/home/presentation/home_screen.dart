@@ -62,6 +62,16 @@ class HomeScreen extends ConsumerWidget {
                       prefixIcon: Icon(Icons.search_rounded),
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: FilledButton.tonalIcon(
+                      key: const Key('homeMyMatchesButton'),
+                      onPressed: () => context.push(AppRoutes.myMatches),
+                      icon: const Icon(Icons.event_note_rounded),
+                      label: const Text('My matches'),
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.xl),
                   Text('Upcoming matches', style: theme.textTheme.titleLarge),
                   const SizedBox(height: AppSpacing.md),
