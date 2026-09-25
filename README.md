@@ -38,6 +38,7 @@ flutter run --dart-define=USE_FIREBASE_EMULATORS=true
 | [authentication.md](docs/authentication.md) | Sign-in methods, session and redirects, onboarding |
 | [firestore-schema.md](docs/firestore-schema.md) | Collections, fields, security rules |
 | [notifications.md](docs/notifications.md) | Push + inbox: events, delivery, reminders |
+| [discover.md](docs/discover.md) | Live now, search, filters, how recommendations are scored |
 | [realtime.md](docs/realtime.md) | Live data flow, the join flow end to end, why rosters can't overbook |
 
 The Google Maps doc is added with the phase that introduces maps.
@@ -57,7 +58,8 @@ npm run test:rules       # Firestore security rules
 | 0 | Foundation: theme, navigation shell, Firebase bootstrap, emulator config | ✅ |
 | 1 | Auth + onboarding (email, Google, forgot password, profile setup) | ✅ |
 | 2 | Matches core (create flow, drafts, live match details, upcoming list) | ✅ |
-| 3 | Maps + discovery + recommendations | ⏳ |
+| 3 | Discovery: live now, search, filters, recommendations | ✅ |
+| 3b | Maps + distance | ⏳ (needs an API key) |
 | 4 | Join requests + realtime roster (server-enforced capacity) | ✅ |
 | 4b | Match report & awards: auto status, goals/assists/cards, Man of the Match | ✅ |
 | 5 | Notifications + reminders (push, in-app inbox) | ✅ |

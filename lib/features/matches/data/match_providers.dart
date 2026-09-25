@@ -24,6 +24,10 @@ final upcomingMatchesProvider = StreamProvider.autoDispose<List<FootballMatch>>(
   (ref) => ref.watch(matchRepositoryProvider).watchUpcomingMatches(),
 );
 
+final liveMatchesProvider = StreamProvider.autoDispose<List<FootballMatch>>(
+  (ref) => ref.watch(matchRepositoryProvider).watchLiveMatches(),
+);
+
 final myDraftsProvider = StreamProvider.autoDispose
     .family<List<MatchDraft>, String>(
       (ref, uid) => ref.watch(matchRepositoryProvider).watchDrafts(uid),

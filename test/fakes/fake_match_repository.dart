@@ -47,6 +47,12 @@ class FakeMatchRepository implements MatchRepository {
   );
 
   @override
+  Stream<List<FootballMatch>> watchLiveMatches({int limit = 20}) => _live(
+    () =>
+        _matches.values.where((m) => m.status == MatchStatus.started).toList(),
+  );
+
+  @override
   Stream<List<MatchDraft>> watchDrafts(String organizerId) => _live(
     () => drafts.values.where((d) => d.organizerId == organizerId).toList(),
   );

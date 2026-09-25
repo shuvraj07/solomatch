@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:solomatch/app/app.dart';
+import 'package:solomatch/app/providers/clock_provider.dart';
 import 'package:solomatch/features/auth/data/auth_providers.dart';
 import 'package:solomatch/features/chat/data/chat_providers.dart';
 import 'package:solomatch/features/match_report/data/match_report_providers.dart';
@@ -41,6 +42,7 @@ Future<void> pumpApp(
   FakeReviewRepository? reviews,
   FakeSettingsRepository? settings,
   FakeSafetyRepository? safety,
+  DateTime? now,
 }) async {
   final matchRepo = matches ?? FakeMatchRepository();
   tester.view
@@ -79,6 +81,7 @@ Future<void> pumpApp(
         safetyRepositoryProvider.overrideWithValue(
           safety ?? FakeSafetyRepository(),
         ),
+        if (now != null) clockProvider.overrideWithValue(() => now),
       ],
       child: const SoloMatchApp(),
     ),

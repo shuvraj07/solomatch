@@ -11,6 +11,10 @@ abstract interface class MatchRepository {
   /// (Phase 3 replaces this with location-aware discovery.)
   Stream<List<FootballMatch>> watchUpcomingMatches({int limit = 30});
 
+  /// Matches being played right now: kicked off and not yet ended. Includes
+  /// matches past kick-off that the server hasn't marked started yet.
+  Stream<List<FootballMatch>> watchLiveMatches({int limit = 20});
+
   Stream<List<MatchDraft>> watchDrafts(String organizerId);
 
   /// A fresh ID shared by a draft and the match it becomes.

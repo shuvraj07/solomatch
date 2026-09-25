@@ -14,6 +14,7 @@ class MatchCard extends StatelessWidget {
     required this.onTap,
     this.distanceLabel,
     this.note,
+    this.live = false,
   });
 
   final FootballMatch match;
@@ -24,6 +25,9 @@ class MatchCard extends StatelessWidget {
 
   /// The viewer's relation to the match, e.g. "⚽ You're playing".
   final String? note;
+
+  /// Shown as "LIVE" (Home's "Live now" section).
+  final bool live;
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +67,7 @@ class MatchCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  StatusChip(status: match.status),
+                  StatusChip(status: match.status, live: live),
                 ],
               ),
               line('📍', [match.venue.shortLabel, ?distance].join(' · ')),
@@ -86,7 +90,7 @@ class MatchCard extends StatelessWidget {
                   ),
                 ),
               ],
-              if (needs.isNotEmpty && !match.isFull) ...[
+              if (needs.isNotEmpty && !match.isFull && !live) ...[
                 const SizedBox(height: AppSpacing.md),
                 Wrap(
                   spacing: AppSpacing.xs,

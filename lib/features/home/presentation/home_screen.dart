@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../../app/router/app_routes.dart';
 import '../../../app/session/session_provider.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../core/widgets/error_snackbar.dart';
 import '../../../core/widgets/placeholder_view.dart';
@@ -19,6 +20,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider);
     final matches = ref.watch(upcomingMatchesProvider);
+    final live = ref.watch(liveMatchesProvider).value ?? const [];
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -74,6 +76,29 @@ class HomeScreen extends ConsumerWidget {
                       label: const Text('My matches'),
                     ),
                   ),
+                  if (live.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.xl),
+                    Row(
+                      key: const Key('liveNowHeader'),
+                      children: [
+                        const Icon(
+                          Icons.circle,
+                          size: 12,
+                          color: AppColors.live,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text('Live now', style: theme.textTheme.titleLarge),
+                      ],
+                    ),
+                    for (final m in live) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      MatchCard(
+                        match: m,
+                        live: true,
+                        onTap: () => context.push(AppRoutes.matchDetails(m.id)),
+                      ),
+                    ],
+                  ],
                   const SizedBox(height: AppSpacing.xl),
                   Text('Upcoming matches', style: theme.textTheme.titleLarge),
                   const SizedBox(height: AppSpacing.md),
@@ -82,11 +107,11 @@ class HomeScreen extends ConsumerWidget {
             ),
             switch (matches) {
               AsyncData(value: final list) when list.isEmpty =>
-                const SliverFillRemaining(
+                SliverFillRemaining(
                   hasScrollBody: false,
                   child: PlaceholderView(
                     icon: Icons.sports_soccer_rounded,
-                    title: 'No matches yet',
+                    title: live.isEmpty ? 'No matches yet' : 'Nothing upcoming',
                     message: 'Be the first: tap + to post a match.',
                   ),
                 ),

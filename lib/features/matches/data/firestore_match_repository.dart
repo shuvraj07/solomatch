@@ -58,6 +58,31 @@ class FirestoreMatchRepository implements MatchRepository {
       );
 
   @override
+  Stream<List<FootballMatch>> watchLiveMatches({int limit = 20}) {
+    final now = _now();
+    // Ordered by end time, so matches that are on now come before later
+    // ones; kick-off is then checked here (one range filter per query).
+    return _matches
+        .where(
+          'status',
+          whereIn: [
+            for (final s in MatchStatus.values)
+              if (s.isListed || s == MatchStatus.started) s.name,
+          ],
+        )
+        .where('endAt', isGreaterThan: Timestamp.fromDate(now))
+        .orderBy('endAt')
+        .limit(limit * 3)
+        .snapshots()
+        .map(
+          (q) => [
+            for (final doc in q.docs)
+              MatchMapper.fromFirestore(doc.id, doc.data()),
+          ].where((m) => !m.startAt.isAfter(_now())).take(limit).toList(),
+        );
+  }
+
+  @override
   Stream<List<MatchDraft>> watchDrafts(String organizerId) => _drafts
       .where('organizerId', isEqualTo: organizerId)
       .orderBy('updatedAt', descending: true)

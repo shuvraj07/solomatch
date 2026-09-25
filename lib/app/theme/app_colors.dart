@@ -19,4 +19,5 @@ abstract final class AppColors {
   static const statusFilling = Color(0xFFF2A516);
   static const statusFull = Color(0xFFE5484D);
   static const statusNeutral = Color(0xFF7A8290);
+  static const live = Color(0xFFE5484D);
 }

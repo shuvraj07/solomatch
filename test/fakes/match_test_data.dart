@@ -9,7 +9,7 @@ import 'package:solomatch/shared/models/skill_level.dart';
 import 'package:solomatch/shared/models/user_summary.dart';
 import 'package:solomatch/shared/models/venue.dart';
 
-/// Fixed "now" for time-dependent tests: Wed 25 Sep 2026, 10:00.
+/// Fixed "now" for time-dependent tests: Fri 25 Sep 2026, 10:00.
 final testNow = DateTime(2026, 9, 25, 10);
 
 const testOrganizer = UserSummary(

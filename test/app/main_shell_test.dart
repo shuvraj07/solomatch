@@ -23,7 +23,7 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Discover'));
     await tester.pumpAndSettle();
-    expect(find.text('Discover matches'), findsOneWidget);
+    expect(find.byKey(const Key('discoverSearchField')), findsOneWidget);
 
     await tester.tap(find.bySemanticsLabel('Messages'));
     await tester.pumpAndSettle();
