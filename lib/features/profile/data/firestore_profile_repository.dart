@@ -38,6 +38,31 @@ class FirestoreProfileRepository implements ProfileRepository {
   }
 
   @override
+  Future<List<PlayerProfile>> searchPlayers(
+    String query, {
+    int limit = 10,
+  }) async {
+    final q = query.trim().toLowerCase().replaceFirst('@', '');
+    if (q.length < 2) return const [];
+    Future<QuerySnapshot<Map<String, dynamic>>> prefix(String field) => _db
+        .collection('players')
+        .where(field, isGreaterThanOrEqualTo: q)
+        .where(field, isLessThan: '$q\uf8ff')
+        .limit(limit)
+        .get();
+    final results = await Future.wait([
+      prefix('username'),
+      prefix('searchName'),
+    ]);
+    final byUid = <String, PlayerProfile>{
+      for (final snap in results)
+        for (final d in snap.docs)
+          d.id: PlayerProfileMapper.fromFirestore(d.id, d.data()),
+    };
+    return byUid.values.take(limit).toList();
+  }
+
+  @override
   Future<void> createProfile(
     PlayerProfile profile, {
     required String? email,

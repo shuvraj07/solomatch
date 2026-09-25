@@ -4,6 +4,7 @@ import '../../../shared/models/match_format.dart';
 import '../../../shared/models/position_group.dart';
 import '../../../shared/models/skill_level.dart';
 import '../../../shared/models/venue.dart';
+import 'lineup_player.dart';
 import 'position_slots.dart';
 
 part 'match_draft.freezed.dart';
@@ -36,6 +37,16 @@ abstract class MatchDraft with _$MatchDraft {
     @Default('') String description,
     @Default('') String rules,
     @Default(<String>[]) List<String> photos,
+
+    /// The organizer takes a roster spot too.
+    @Default(false) bool organizerPlaying,
+    PositionGroup? organizerGroup,
+
+    /// SoloMatch users already confirmed (friends who are coming).
+    @Default(<LineupPlayer>[]) List<LineupPlayer> lineup,
+
+    /// Confirmed friends who aren't on SoloMatch.
+    @Default(0) int guestCount,
     DateTime? updatedAt,
   }) = _MatchDraft;
 
@@ -55,6 +66,13 @@ abstract class MatchDraft with _$MatchDraft {
     0,
     (sum, g) => sum + (neededPositions[g] ?? 0),
   );
+
+  /// Players already confirmed before posting.
+  int get confirmedCount =>
+      lineup.length + guestCount + (organizerPlaying ? 1 : 0);
+
+  /// Places still open for requests once published.
+  int get openSpots => maxPlayers - confirmedCount;
 
   PositionSlots get slots =>
       PositionSlots.create(maxPlayers: maxPlayers, needed: neededPositions);

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/session/session_provider.dart';
 import '../../../../core/errors/app_failure.dart';
-import '../../../../shared/models/user_summary.dart';
 import '../../data/match_providers.dart';
 import '../../domain/create_match_step.dart';
 import '../../domain/match_draft.dart';
@@ -89,22 +88,11 @@ class CreateMatchController extends Notifier<CreateMatchState> {
         MatchValidator.validateStep(invalid, draft, now: _now())!,
       );
     }
-    final profile = ref.read(currentProfileProvider);
-    if (profile == null) throw const AuthFailure('You are signed out.');
+    if (ref.read(currentProfileProvider) == null) {
+      throw const AuthFailure('You are signed out.');
+    }
 
-    await _busy(
-      () => ref
-          .read(matchRepositoryProvider)
-          .publish(
-            draft,
-            UserSummary(
-              uid: profile.uid,
-              name: profile.fullName,
-              username: profile.username,
-              photoUrl: profile.photoUrl,
-            ),
-          ),
-    );
+    await _busy(() => ref.read(matchRepositoryProvider).publish(draft));
     if (ref.mounted) state = state.copyWith(dirty: false);
     return draft.id;
   }

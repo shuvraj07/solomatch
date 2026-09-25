@@ -23,6 +23,7 @@ import '../../fakes/fake_profile_repository.dart';
 import '../../fakes/match_test_data.dart';
 import '../../fakes/test_data.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/seed_match.dart';
 
 class _MockStorage extends Mock implements FirebaseStorage {}
 
@@ -78,11 +79,16 @@ void main() {
 
   test('Firestore: organized matches and my requests are combined', () async {
     final db = FakeFirebaseFirestore();
-    final matches = FirestoreMatchRepository(db, _MockStorage());
+    final matches = FirestoreMatchRepository(
+      db,
+      _MockStorage(),
+      _MockFunctions(),
+    );
     final requests = FirestoreMatchRequestRepository(db, _MockFunctions());
 
-    await matches.publish(completeDraft(id: 'mine'), testOrganizer);
-    await matches.publish(
+    await seedMatch(db, completeDraft(id: 'mine'), testOrganizer);
+    await seedMatch(
+      db,
       completeDraft(id: 'theirs'),
       testOrganizer.copyWith(uid: 'sita', username: 'sita'),
     );

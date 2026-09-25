@@ -8,8 +8,9 @@ import { onSchedule } from 'firebase-functions/scheduler';
 
 import { advanceMatches } from './matches/lifecycle.js';
 import { parseLines, submitMatchReport } from './matches/match_report.js';
+import { publishMatch } from './matches/publish_match.js';
 import { deliver } from './notifications/deliver.js';
-import { forMatchChange, forRequestChange } from './notifications/messages.js';
+import { forLineup, forMatchChange, forRequestChange } from './notifications/messages.js';
 import { sendReminders } from './notifications/reminders.js';
 import { acceptRequest, leaveMatch, rejectRequest } from './requests/join_requests.js';
 import { isGroup } from './requests/slots.js';
@@ -107,6 +108,31 @@ export const saveMatchReport = onCall(async (req) => {
     }),
   );
   return { ok: true };
+});
+
+/**
+ * Publishes a saved draft: { draftId }. Places the organizer's confirmed
+ * players on the roster and tells them they were added.
+ */
+export const publishDraft = onCall(async (req) => {
+  const callerUid = requireUid(req);
+  const draftId = requireString(req.data, 'draftId');
+  const db = getFirestore();
+  const result = await run(() => publishMatch(db, { draftId, callerUid }));
+  const match = (await db.collection('matches').doc(result.matchId).get()).data();
+  await deliver(
+    db,
+    getMessaging(),
+    forLineup(
+      result.matchId,
+      result.title,
+      result.organizerName,
+      match?.startAt?.toMillis() ?? Date.now(),
+      result.addedPlayers,
+    ),
+    `added_${result.matchId}`,
+  );
+  return { matchId: result.matchId, currentPlayers: result.currentPlayers };
 });
 
 // ------------------------------------------------------------- notifications

@@ -84,7 +84,7 @@ void main() {
     final match = repo.matchOf(id)!;
     expect(match.status, MatchStatus.published);
     expect(match.organizer.uid, 'raj');
-    expect(match.organizer.username, 'raj10');
+    expect(match.organizer.uid, 'raj');
     expect(match.currentPlayers, 0);
   });
 

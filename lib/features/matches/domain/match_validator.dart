@@ -36,6 +36,11 @@ abstract final class MatchValidator {
             ? 'Positions add up to ${d.specificPositionsTotal}, '
                   'but the match has ${d.maxPlayers} places'
             : null,
+      CreateMatchStep.lineup =>
+        d.openSpots < 0
+            ? '${d.confirmedCount} players confirmed, but the match has '
+                  '${d.maxPlayers} places'
+            : null,
       CreateMatchStep.skill => null,
       CreateMatchStep.price =>
         d.priceAmount < 0 || d.priceAmount > maxPrice

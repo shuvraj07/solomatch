@@ -66,10 +66,11 @@ Later phases add notification preferences, blocks and favorites.
 
 ## `matches/{matchId}`: published matches
 
-Readable by any signed-in user. Created by the organizer, whose app writes the
-document and deletes the draft in one batch. After that, the organizer can only
-edit descriptive text or cancel. Roster counts and status belong to the server
-(Phase 4).
+Readable by any signed-in user. Created by the `publishDraft` Cloud Function
+from the organizer's saved draft. The function re-validates the draft, puts
+any pre-confirmed players on the roster, and deletes the draft, all in one
+transaction. After that, the organizer can only edit descriptive text or
+cancel. Roster counts and status belong to the server.
 
 | Field | Type | Notes |
 |---|---|---|
@@ -79,7 +80,8 @@ edit descriptive text or cancel. Roster counts and status belong to the server
 | `startAt`, `endAt` | timestamp | Must start in the future; 30 min – 6 h long |
 | `format` | string | `fiveASide` \| `sevenASide` \| `nineASide` \| `elevenASide` |
 | `maxPlayers` | int | 2–30 |
-| `currentPlayers` 🔒 | int | Accepted players. Starts at 0 |
+| `currentPlayers` 🔒 | int | Players on the roster plus guests. Starts at the number of pre-confirmed players |
+| `guestCount` 🔒 | int | Confirmed friends without an account (counted, not on the roster) |
 | `spotsRemaining` 🔒 | int | `maxPlayers − currentPlayers`, kept for queries/sorting |
 | `slots` 🔒 (filled) | map | `{gk, def, mid, fwd, any}` → `{needed, filled}`. The `needed` values add up to `maxPlayers` |
 | `skillLevel` | string | `beginner` \| `intermediate` \| `advanced` \| `any` |
@@ -151,6 +153,16 @@ form: `title`, `venue`, `date` (UTC midnight), `startMinutes`/`endMinutes`
 (minutes after midnight), `format`, `maxPlayers`, `neededPositions`
 (`{gk: 1, ...}`), `skillLevel`, `priceAmount`, `isIndoor`, `description`,
 `rules`, `photos`, `updatedAt`. The draft ID becomes the match ID on publish.
+
+Pre-confirmed players ("Your players" step):
+- `organizerPlaying` (bool) and `organizerGroup`: the organizer takes a spot.
+- `lineup`: `[{uid, name, username, photoUrl, primaryPosition, group}]`, SoloMatch
+  users who are already coming. On publish each gets a roster entry and an
+  `accepted` request (`addedByOrganizer: true`), so the match appears in their
+  My Matches and they can **Leave**. They're notified with `added_to_match`.
+- `guestCount`: friends who aren't on SoloMatch.
+- `startAt` / `endAt`: absolute times computed on the organizer's phone. The
+  server uses these rather than re-deriving them from the date and minutes.
 
 Index: `(organizerId ASC, updatedAt DESC)`.
 

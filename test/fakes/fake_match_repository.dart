@@ -67,19 +67,26 @@ class FakeMatchRepository implements MatchRepository {
   }
 
   @override
-  Future<void> publish(MatchDraft draft, UserSummary organizer) async {
+  Future<void> publish(MatchDraft draft) async {
     drafts.remove(draft.id);
+    final confirmed = draft.confirmedCount;
     push(
       FootballMatch(
         id: draft.id,
-        organizer: organizer,
+        // The real server reads the organizer's profile; tests use the uid.
+        organizer: UserSummary(
+          uid: draft.organizerId,
+          name: draft.organizerId,
+          username: draft.organizerId,
+        ),
         title: draft.title.trim(),
         venue: draft.venue!,
         startAt: draft.startAt!,
         endAt: draft.endAt!,
         format: draft.format,
         maxPlayers: draft.maxPlayers,
-        currentPlayers: 0,
+        currentPlayers: confirmed,
+        guestCount: draft.guestCount,
         slots: draft.slots,
         skillLevel: draft.skillLevel,
         price: Price(amount: draft.priceAmount),
@@ -87,7 +94,11 @@ class FakeMatchRepository implements MatchRepository {
         description: draft.description,
         rules: draft.rules,
         photos: draft.photos,
-        status: MatchStatus.published,
+        status: confirmed >= draft.maxPlayers
+            ? MatchStatus.full
+            : confirmed > 0
+            ? MatchStatus.filling
+            : MatchStatus.published,
       ),
     );
   }

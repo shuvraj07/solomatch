@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../shared/models/match_format.dart';
+import '../../../shared/models/position.dart';
 import '../../../shared/models/position_group.dart';
 import '../../../shared/models/price.dart';
 import '../../../shared/models/skill_level.dart';
@@ -8,6 +9,7 @@ import '../../../shared/models/user_summary.dart';
 import '../../../shared/models/venue.dart';
 import '../../match_report/domain/match_report.dart';
 import '../domain/football_match.dart';
+import '../domain/lineup_player.dart';
 import '../domain/match_draft.dart';
 import '../domain/match_status.dart';
 import '../domain/position_slots.dart';
@@ -28,6 +30,7 @@ abstract final class MatchMapper {
         format: MatchFormat.fromName(d['format'] as String),
         maxPlayers: _int(d['maxPlayers']),
         currentPlayers: _int(d['currentPlayers']),
+        guestCount: _int(d['guestCount']),
         slots: slotsFrom(d['slots'] as Map<String, dynamic>),
         skillLevel: SkillLevel.fromName(d['skillLevel'] as String),
         price: Price.fromJson(d['price'] as Map<String, dynamic>),
@@ -136,6 +139,16 @@ abstract final class MatchMapper {
       description: d['description'] as String? ?? '',
       rules: d['rules'] as String? ?? '',
       photos: _strings(d['photos']),
+      organizerPlaying: d['organizerPlaying'] as bool? ?? false,
+      organizerGroup: switch (d['organizerGroup']) {
+        final String g => PositionGroup.fromName(g),
+        _ => null,
+      },
+      lineup: [
+        for (final l in d['lineup'] as List<Object?>? ?? const [])
+          lineupFrom(l! as Map<String, dynamic>),
+      ],
+      guestCount: _int(d['guestCount']),
       updatedAt: (d['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
@@ -163,9 +176,41 @@ abstract final class MatchMapper {
       'description': d.description,
       'rules': d.rules,
       'photos': d.photos,
+      // Absolute times computed on the phone (its time zone), used by
+      // the server when publishing.
+      'startAt': switch (d.startAt) {
+        final t? => Timestamp.fromDate(t),
+        null => null,
+      },
+      'endAt': switch (d.endAt) {
+        final t? => Timestamp.fromDate(t),
+        null => null,
+      },
+      'organizerPlaying': d.organizerPlaying,
+      'organizerGroup': d.organizerGroup?.name,
+      'lineup': [for (final l in d.lineup) lineupTo(l)],
+      'guestCount': d.guestCount,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }
+
+  static LineupPlayer lineupFrom(Map<String, dynamic> l) => LineupPlayer(
+    uid: l['uid'] as String,
+    name: l['name'] as String,
+    username: l['username'] as String,
+    photoUrl: l['photoUrl'] as String?,
+    primaryPosition: Position.fromName(l['primaryPosition'] as String),
+    group: PositionGroup.fromName(l['group'] as String),
+  );
+
+  static Map<String, dynamic> lineupTo(LineupPlayer l) => {
+    'uid': l.uid,
+    'name': l.name,
+    'username': l.username,
+    'photoUrl': l.photoUrl,
+    'primaryPosition': l.primaryPosition.name,
+    'group': l.group.name,
+  };
 
   // ---------- shared pieces ----------
 

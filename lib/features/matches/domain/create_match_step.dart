@@ -10,6 +10,7 @@ enum CreateMatchStep {
   format('Format'),
   maxPlayers('How many players?'),
   positions('Positions needed'),
+  lineup('Your players'),
   skill('Skill level'),
   price('Price'),
   description('Description'),

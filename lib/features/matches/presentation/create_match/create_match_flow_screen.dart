@@ -14,6 +14,7 @@ import '../../domain/match_validator.dart';
 import 'create_match_controller.dart';
 import 'steps/date_step.dart';
 import 'steps/format_step.dart';
+import 'steps/lineup_step.dart';
 import 'steps/location_step.dart';
 import 'steps/long_text_step.dart';
 import 'steps/max_players_step.dart';
@@ -133,6 +134,10 @@ class CreateMatchFlowScreen extends ConsumerWidget {
         onChanged: controller.update,
       ),
       CreateMatchStep.positions => PositionsStep(
+        draft: draft,
+        onChanged: controller.update,
+      ),
+      CreateMatchStep.lineup => LineupStep(
         draft: draft,
         onChanged: controller.update,
       ),

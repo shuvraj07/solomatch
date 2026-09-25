@@ -51,6 +51,23 @@ class FakeProfileRepository implements ProfileRepository {
   }
 
   @override
+  Future<List<PlayerProfile>> searchPlayers(
+    String query, {
+    int limit = 10,
+  }) async {
+    final q = query.trim().toLowerCase().replaceFirst('@', '');
+    if (q.length < 2) return const [];
+    return _profiles.values
+        .where(
+          (p) =>
+              p.username.startsWith(q) ||
+              p.fullName.toLowerCase().startsWith(q),
+        )
+        .take(limit)
+        .toList();
+  }
+
+  @override
   Future<String> uploadProfilePhoto(String uid, Uint8List bytes) async {
     uploads.add(uid);
     return 'https://example.com/$uid.jpg';

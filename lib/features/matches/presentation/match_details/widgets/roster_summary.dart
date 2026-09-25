@@ -121,6 +121,17 @@ class RosterSummary extends StatelessWidget {
                     ],
                   ),
                 ),
+            if (match.guestCount > 0)
+              Padding(
+                padding: const EdgeInsets.only(left: 36, top: AppSpacing.xs),
+                child: Text(
+                  '+ ${match.guestCount} '
+                  '${match.guestCount == 1 ? 'guest' : 'guests'} '
+                  '(not on SoloMatch)',
+                  key: const Key('rosterGuests'),
+                  style: TextStyle(color: muted),
+                ),
+              ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               spots == 0

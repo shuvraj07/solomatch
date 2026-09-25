@@ -26,6 +26,12 @@ class ReviewStep extends StatelessWidget {
     final start = draft.startAt;
     final end = draft.endAt;
     final slots = draft.slots;
+    final confirmedNames = [
+      if (draft.organizerPlaying) 'You',
+      for (final l in draft.lineup) l.name,
+      if (draft.guestCount > 0)
+        '${draft.guestCount} ${draft.guestCount == 1 ? 'guest' : 'guests'}',
+    ];
     final needs = [
       for (final g in PositionGroup.values)
         if (slots[g].needed > 0)
@@ -90,6 +96,14 @@ class ReviewStep extends StatelessWidget {
           '${draft.format.label} · ${draft.maxPlayers} players',
         ),
         row(CreateMatchStep.positions, 'Positions', needs),
+        row(
+          CreateMatchStep.lineup,
+          'Already confirmed',
+          draft.confirmedCount == 0
+              ? 'Nobody yet: all ${draft.maxPlayers} spots open'
+              : '${confirmedNames.join(', ')}\n'
+                    '${draft.openSpots} spots open for requests',
+        ),
         row(CreateMatchStep.skill, 'Skill level', draft.skillLevel.label),
         row(
           CreateMatchStep.price,

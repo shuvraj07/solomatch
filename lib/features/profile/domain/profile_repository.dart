@@ -16,6 +16,9 @@ abstract interface class ProfileRepository {
   /// Updates editable fields. Username and stats are not changed here.
   Future<void> updateProfile(PlayerProfile profile);
 
+  /// Players whose username or name starts with [query] (case-insensitive).
+  Future<List<PlayerProfile>> searchPlayers(String query, {int limit = 10});
+
   /// Uploads a profile photo and returns its download URL.
   Future<String> uploadProfilePhoto(String uid, Uint8List bytes);
 }

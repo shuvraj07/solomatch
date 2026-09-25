@@ -116,7 +116,7 @@ void main() {
 
     await tester.tapVisible(find.byKey(const Key('createMatchButton')));
     await tester.tapVisible(find.byKey(const Key('newMatchButton')));
-    expect(find.text('Step 1 of 15'), findsOneWidget);
+    expect(find.text('Step 1 of 16'), findsOneWidget);
 
     await tester.tapVisible(find.byKey(const Key('createMatchNextButton')));
     expect(find.text('Give the match a name'), findsOneWidget);
@@ -126,7 +126,7 @@ void main() {
       'Friday Futsal',
     );
     await tester.tapVisible(find.byKey(const Key('createMatchNextButton')));
-    expect(find.text('Step 2 of 15'), findsOneWidget);
+    expect(find.text('Step 2 of 16'), findsOneWidget);
     // City is prefilled from the organizer's profile.
     expect(find.text('Kathmandu'), findsOneWidget);
 

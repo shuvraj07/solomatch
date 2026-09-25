@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 import '../../../core/errors/app_failure.dart';
-import '../../../shared/models/user_summary.dart';
 import '../domain/football_match.dart';
 import '../domain/match_draft.dart';
 import '../domain/match_repository.dart';
@@ -14,12 +14,14 @@ import 'match_mapper.dart';
 class FirestoreMatchRepository implements MatchRepository {
   FirestoreMatchRepository(
     this._db,
-    this._storage, {
+    this._storage,
+    this._functions, {
     DateTime Function()? clock,
   }) : _now = clock ?? DateTime.now;
 
   final FirebaseFirestore _db;
   final FirebaseStorage _storage;
+  final FirebaseFunctions _functions;
   final DateTime Function() _now;
 
   CollectionReference<Map<String, dynamic>> get _matches =>
@@ -79,12 +81,23 @@ class FirestoreMatchRepository implements MatchRepository {
       _guard(() => _drafts.doc(draftId).delete());
 
   @override
-  Future<void> publish(MatchDraft draft, UserSummary organizer) => _guard(() {
-    final batch = _db.batch()
-      ..set(_matches.doc(draft.id), MatchMapper.newMatch(draft, organizer))
-      ..delete(_drafts.doc(draft.id));
-    return batch.commit();
-  });
+  Future<void> publish(MatchDraft draft) async {
+    await saveDraft(draft);
+    try {
+      await _functions.httpsCallable('publishDraft').call<Object?>({
+        'draftId': draft.id,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      final message = e.message ?? const UnknownFailure().message;
+      throw switch (e.code) {
+        'invalid-argument' ||
+        'failed-precondition' => ValidationFailure(message),
+        'permission-denied' => PermissionFailure(message),
+        'unavailable' || 'deadline-exceeded' => const NetworkFailure(),
+        _ => const UnknownFailure(),
+      };
+    }
+  }
 
   @override
   Future<void> cancelMatch(String matchId) => _guard(

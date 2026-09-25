@@ -12,6 +12,12 @@ final profileRepositoryProvider = Provider<ProfileRepository>(
   ),
 );
 
+/// Search results for the player picker (empty for < 2 characters).
+final playerSearchProvider = FutureProvider.autoDispose
+    .family<List<PlayerProfile>, String>(
+      (ref, query) => ref.watch(profileRepositoryProvider).searchPlayers(query),
+    );
+
 /// Live profile of any player.
 final playerProfileProvider = StreamProvider.family<PlayerProfile?, String>(
   (ref, uid) => ref.watch(profileRepositoryProvider).watchProfile(uid),

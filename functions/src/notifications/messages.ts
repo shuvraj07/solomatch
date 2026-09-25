@@ -14,7 +14,8 @@ export type NotificationType =
   | 'match_cancelled'
   | 'match_reminder'
   | 'motm_vote'
-  | 'motm_won';
+  | 'motm_won'
+  | 'added_to_match';
 
 export interface Outgoing {
   uid: string;
@@ -223,4 +224,21 @@ export function reminderMessage(
         : `Kick-off ${reminder.label} ⚽`,
     body: `${match.title}${venue}, ${kickOffLabel(match.startAt.toMillis())}.`,
   };
+}
+
+/** Organizer put these players on the roster when posting the match. */
+export function forLineup(
+  matchId: string,
+  title: string,
+  organizerName: string,
+  startMs: number,
+  uids: string[],
+): Outgoing[] {
+  return uids.map((uid) => ({
+    uid,
+    matchId,
+    type: 'added_to_match',
+    title: `${organizerName} added you to a match ⚽`,
+    body: `${title}, ${kickOffLabel(startMs)}. Can't make it? Open the match and tap Leave.`,
+  }));
 }

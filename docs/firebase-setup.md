@@ -75,7 +75,7 @@ Functions live in `functions/` (TypeScript, Node 22, region `asia-south1`).
 
 ```sh
 cd functions && npm install
-FUNCTIONS_DISCOVERY_TIMEOUT=60 firebase deploy --only functions
+FUNCTIONS_DISCOVERY_TIMEOUT=120 firebase deploy --only functions
 ```
 
 The longer discovery timeout avoids "User code failed to load … Timeout after

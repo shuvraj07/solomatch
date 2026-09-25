@@ -10,6 +10,7 @@ final matchRepositoryProvider = Provider<MatchRepository>(
   (ref) => FirestoreMatchRepository(
     ref.watch(firestoreProvider),
     ref.watch(storageProvider),
+    ref.watch(functionsProvider),
   ),
 );
 

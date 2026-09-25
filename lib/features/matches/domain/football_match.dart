@@ -28,6 +28,10 @@ abstract class FootballMatch with _$FootballMatch {
 
     /// Accepted players. Server-maintained.
     required int currentPlayers,
+
+    /// Confirmed friends without a SoloMatch account (counted in
+    /// [currentPlayers], not on the roster).
+    @Default(0) int guestCount,
     required PositionSlots slots,
     required SkillLevel skillLevel,
     required Price price,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,8 +26,11 @@ import '../../fakes/fake_profile_repository.dart';
 import '../../fakes/match_test_data.dart';
 import '../../fakes/test_data.dart';
 import '../../helpers/pump_app.dart';
+import '../../helpers/seed_match.dart';
 
 class _MockStorage extends Mock implements FirebaseStorage {}
+
+class _MockFunctions extends Mock implements FirebaseFunctions {}
 
 final amit = testProfile(uid: 'amit', username: 'amit', fullName: 'Amit Karki');
 final sita = testProfile(uid: 'sita', username: 'sita', fullName: 'Sita Rai');
@@ -71,8 +75,8 @@ void main() {
 
   test('match mapper reads report, MOTM and voting deadline', () async {
     final db = FakeFirebaseFirestore();
-    final repo = FirestoreMatchRepository(db, _MockStorage());
-    await repo.publish(completeDraft(id: 'm1'), testOrganizer);
+    final repo = FirestoreMatchRepository(db, _MockStorage(), _MockFunctions());
+    await seedMatch(db, completeDraft(id: 'm1'), testOrganizer);
     await db.doc('matches/m1').update({
       'status': 'completed',
       'votingClosesAt': DateTime(2026, 9, 29, 20),

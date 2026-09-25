@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,8 +8,11 @@ import 'package:solomatch/features/matches/domain/match_status.dart';
 import 'package:solomatch/shared/models/position_group.dart';
 
 import '../../../fakes/match_test_data.dart';
+import '../../../helpers/seed_match.dart';
 
 class _MockStorage extends Mock implements FirebaseStorage {}
+
+class _MockFunctions extends Mock implements FirebaseFunctions {}
 
 void main() {
   late FakeFirebaseFirestore db;
@@ -16,7 +20,12 @@ void main() {
 
   setUp(() {
     db = FakeFirebaseFirestore();
-    repo = FirestoreMatchRepository(db, _MockStorage(), clock: () => testNow);
+    repo = FirestoreMatchRepository(
+      db,
+      _MockStorage(),
+      _MockFunctions(),
+      clock: () => testNow,
+    );
   });
 
   test('drafts round-trip and are listed for their organizer only', () async {
@@ -32,11 +41,10 @@ void main() {
   });
 
   test(
-    'publish writes the match with zero counters and deletes the draft',
+    'a published match (server format) reads back with zero counters',
     () async {
       final draft = completeDraft(id: 'abc');
-      await repo.saveDraft(draft);
-      await repo.publish(draft, testOrganizer);
+      await seedMatch(db, draft, testOrganizer);
 
       final raw = (await db.doc('matches/abc').get()).data()!;
       expect(raw['status'], 'published');
@@ -45,7 +53,6 @@ void main() {
       expect(raw['searchTitle'], 'saturday night football');
       expect((raw['slots'] as Map)['any'], {'needed': 7, 'filled': 0});
       expect(raw['price'], {'amount': 0, 'currency': 'NPR', 'isFree': true});
-      expect((await db.doc('match_drafts/abc').get()).exists, isFalse);
 
       final match = await repo.watchMatch('abc').firstWhere((m) => m != null);
       expect(match!.organizer, testOrganizer);
@@ -60,7 +67,7 @@ void main() {
   test('upcoming matches: listed statuses only, soonest first', () async {
     Future<void> publishAt(String id, int day) {
       final d = completeDraft(id: id).copyWith(date: DateTime(2026, 9, day));
-      return repo.publish(d, testOrganizer);
+      return seedMatch(db, d, testOrganizer);
     }
 
     await publishAt('later', 30);
@@ -75,7 +82,7 @@ void main() {
   });
 
   test('cancelMatch sets status', () async {
-    await repo.publish(completeDraft(id: 'x'), testOrganizer);
+    await seedMatch(db, completeDraft(id: 'x'), testOrganizer);
     await repo.cancelMatch('x');
     final m = await repo
         .watchMatch('x')

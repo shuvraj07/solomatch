@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import '../../../shared/models/user_summary.dart';
 import 'football_match.dart';
 import 'match_draft.dart';
 
@@ -21,9 +20,10 @@ abstract interface class MatchRepository {
 
   Future<void> deleteDraft(String draftId);
 
-  /// Creates `matches/{draft.id}` and deletes the draft atomically.
-  /// Callers must validate the draft first (see MatchValidator).
-  Future<void> publish(MatchDraft draft, UserSummary organizer);
+  /// Saves the draft, then publishes it on the server, which re-validates
+  /// it, puts confirmed players on the roster and deletes the draft.
+  /// Callers should validate first for quick feedback (MatchValidator).
+  Future<void> publish(MatchDraft draft);
 
   /// Organizer-only; security rules reject anyone else.
   Future<void> cancelMatch(String matchId);
