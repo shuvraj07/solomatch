@@ -82,6 +82,34 @@ edit descriptive text or cancel. Roster counts and status belong to the server
 
 Indexes: `(status ASC, startAt ASC)` for the upcoming-matches list.
 
+## `matches/{matchId}/requests/{playerId}`: join requests
+
+The document ID is the player's uid, so each player has at most one request
+per match. The player and the match organizer can read it.
+
+| Field | Type | Notes |
+|---|---|---|
+| `status` | string | `pending` → `accepted` \| `rejected` (server), or `cancelled` (player withdrew or left) |
+| `player` | map | Player card: `uid, name, username, photoUrl, primaryPosition, secondaryPositions, skillLevel, ratingAvg, ratingCount, gamesPlayed`. The rules check it matches `players/{uid}` |
+| `preferredGroup` | string | `gk` \| `def` \| `mid` \| `fwd` \| `any` |
+| `message` | string | ≤ 200 chars |
+| `match` | map | `{title, startAt, venueName}`, a snapshot for "My requests" lists |
+| `assignedGroup` 🔒 | string | Slot given on accept |
+| `createdAt`, `updatedAt`, `decidedAt` 🔒, `leftAt` 🔒 | timestamp | |
+
+Client writes: create a `pending` request (not your own match; the match must
+be open and not started), withdraw `pending` → `cancelled`, and request again
+from `cancelled`. `rejected` is final. Accept and reject happen only in Cloud
+Functions.
+
+Index: `(status ASC, createdAt ASC)` for the organizer's pending list.
+
+## `matches/{matchId}/roster/{playerId}`: accepted players 🔒
+
+`{player (card), group, joinedAt}`. Readable by signed-in users. Written only
+by the `acceptJoinRequest` and `leaveJoinedMatch` Cloud Functions, in the same
+transaction that updates the match counters.
+
 ## `match_drafts/{draftId}`: unfinished matches
 
 Private to the organizer (`organizerId == auth.uid`). Same shape as the create
@@ -107,3 +135,7 @@ in `functions/test/rules/` (`npm run test:rules`) and cover:
 - Organizers can't change capacity, counters or status (except cancel), and
   other players can't edit or cancel at all. Matches can't be deleted.
 - Drafts are private to their organizer.
+- Join requests can only be created by the player themselves, with a player
+  card matching their real profile (no faked rating or games played), on an
+  open, not-started match they don't organize. Nobody can set `accepted` or
+  `rejected` from a client, and the roster can't be written from a client.

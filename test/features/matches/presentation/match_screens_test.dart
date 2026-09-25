@@ -99,7 +99,7 @@ void main() {
     await pumpWithMatches(tester, repo, asOrganizer: true);
     await tester.tapVisible(find.text('⚽ Saturday Night Football'));
 
-    expect(find.text("You're organizing this match"), findsOneWidget);
+    expect(find.byKey(const Key('manageRequestsButton')), findsOneWidget);
     await tester.tapVisible(find.byKey(const Key('matchMenu')));
     await tester.tapVisible(find.text('Cancel match').last);
     await tester.tapVisible(find.widgetWithText(FilledButton, 'Cancel match'));

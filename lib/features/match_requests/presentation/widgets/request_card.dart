@@ -1,0 +1,107 @@
+import 'package:material_ui/material_ui.dart';
+
+import '../../../../app/theme/app_spacing.dart';
+import '../../../../shared/widgets/player_avatar.dart';
+import '../../../../shared/widgets/position_badge.dart';
+import '../../domain/join_request.dart';
+
+/// One pending request with the player's football profile and
+/// Accept / Reject buttons.
+class RequestCard extends StatelessWidget {
+  const RequestCard({
+    super.key,
+    required this.request,
+    required this.busy,
+    required this.onAccept,
+    required this.onReject,
+  });
+
+  final JoinRequest request;
+  final bool busy;
+  final VoidCallback onAccept;
+  final VoidCallback onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final p = request.player;
+    final muted = theme.colorScheme.onSurfaceVariant;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                PlayerAvatar(name: p.name, photoUrl: p.photoUrl),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(p.name, style: theme.textTheme.titleMedium),
+                      Text(
+                        '@${p.username} · ${p.skillLevel.label}',
+                        style: TextStyle(color: muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                PositionBadge(
+                  group: p.primaryPosition.group,
+                  label: p.primaryPosition.shortLabel,
+                  showEmoji: true,
+                ),
+                for (final s in p.secondaryPositions)
+                  PositionBadge(group: s.group, label: s.shortLabel),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              '⚽ ${p.gamesPlayed} matches · '
+              '${p.ratingCount > 0 ? '⭐ ${p.ratingAvg.toStringAsFixed(1)}' : 'No rating yet'}'
+              ' · wants ${request.preferredGroup.emoji} '
+              '${request.preferredGroup.shortLabel}',
+              style: TextStyle(color: muted),
+            ),
+            if (request.message.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text('"${request.message}"', style: theme.textTheme.bodyMedium),
+            ],
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    key: Key('reject_${p.uid}'),
+                    onPressed: busy ? null : onReject,
+                    icon: const Icon(Icons.close_rounded),
+                    label: const Text('Reject'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: FilledButton.icon(
+                    key: Key('accept_${p.uid}'),
+                    onPressed: busy ? null : onAccept,
+                    icon: const Icon(Icons.check_rounded),
+                    label: const Text('Accept'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

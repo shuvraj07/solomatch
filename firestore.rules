@@ -197,6 +197,84 @@ service cloud.firestore {
         );
 
       allow delete: if false;
+
+      function thisMatch() {
+        return get(/databases/$(database)/documents/matches/$(matchId)).data;
+      }
+
+      // ----- join requests: matches/{matchId}/requests/{playerId} -----
+      // Doc ID = player uid, so one request per player per match.
+      // Accept / reject / leave happen only in Cloud Functions.
+
+      function playerDoc() {
+        return get(/databases/$(database)/documents/players/$(request.auth.uid)).data;
+      }
+
+      // The player card organizers see must match the real profile.
+      function validPlayerCard(p) {
+        let profile = playerDoc();
+        let stats = profile.get('stats', {});
+        return p.keys().hasOnly(['uid', 'name', 'username', 'photoUrl',
+                                 'primaryPosition', 'secondaryPositions',
+                                 'skillLevel', 'ratingAvg', 'ratingCount',
+                                 'gamesPlayed'])
+          && p.uid == request.auth.uid
+          && p.name == profile.fullName
+          && p.username == profile.username
+          && p.photoUrl == profile.photoUrl
+          && p.primaryPosition == profile.primaryPosition
+          && p.secondaryPositions == profile.secondaryPositions
+          && p.skillLevel == profile.skillLevel
+          && p.ratingAvg == stats.get('ratingAvg', 0)
+          && p.ratingCount == stats.get('ratingCount', 0)
+          && p.gamesPlayed == stats.get('gamesPlayed', 0);
+      }
+
+      function validNewRequest() {
+        let m = thisMatch();
+        return incoming().keys().hasOnly(['status', 'player', 'preferredGroup',
+                                          'message', 'match', 'createdAt', 'updatedAt'])
+          && incoming().status == 'pending'
+          && validPlayerCard(incoming().player)
+          && incoming().preferredGroup in slotGroups()
+          && incoming().message is string && incoming().message.size() <= 200
+          && incoming().match.keys().hasOnly(['title', 'startAt', 'venueName'])
+          && incoming().match.title == m.title
+          && incoming().match.startAt == m.startAt
+          && incoming().match.venueName == m.venue.name
+          && m.organizer.uid != request.auth.uid
+          && m.status in ['published', 'filling']
+          && m.startAt > request.time
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+      }
+
+      match /requests/{playerId} {
+        allow read: if isUser(playerId)
+          || (signedIn() && thisMatch().organizer.uid == request.auth.uid);
+
+        allow create: if isUser(playerId) && validNewRequest();
+
+        allow update: if isUser(playerId) && (
+          // Withdraw a pending request.
+          (resource.data.status == 'pending'
+            && changedKeys().hasOnly(['status', 'updatedAt'])
+            && incoming().status == 'cancelled'
+            && incoming().updatedAt == request.time)
+          ||
+          // Ask again after withdrawing or leaving. Rejection is final.
+          (resource.data.status == 'cancelled' && validNewRequest())
+        );
+
+        allow delete: if false;
+      }
+
+      // ----- roster: matches/{matchId}/roster/{playerId} (server-only) -----
+
+      match /roster/{playerId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
     }
 
     // ---------- match drafts (organizer-private) ----------

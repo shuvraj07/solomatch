@@ -38,12 +38,16 @@ flutter run --dart-define=USE_FIREBASE_EMULATORS=true
 | [authentication.md](docs/authentication.md) | Sign-in methods, session and redirects, onboarding |
 | [firestore-schema.md](docs/firestore-schema.md) | Collections, fields, security rules |
 
-Realtime and Google Maps docs are added with the phases that introduce them.
+| [realtime.md](docs/realtime.md) | Live data flow, the join flow end to end, why rosters can't overbook |
 
-Security-rules tests (need Java and the Firebase CLI):
+The Google Maps doc is added with the phase that introduces maps.
+
+Cloud Functions and security-rules tests (need Java and the Firebase CLI):
 
 ```sh
-cd functions && npm install && npm run test:rules
+cd functions && npm install
+npm run test:functions   # accept/reject/leave incl. concurrent-accept race tests
+npm run test:rules       # Firestore security rules
 ```
 
 ## Status
@@ -54,7 +58,7 @@ cd functions && npm install && npm run test:rules
 | 1 | Auth + onboarding (email, Google, forgot password, profile setup) | ✅ |
 | 2 | Matches core (create flow, drafts, live match details, upcoming list) | ✅ |
 | 3 | Maps + discovery + recommendations | ⏳ |
-| 4 | Join requests + realtime roster (server-enforced capacity) | ⏳ |
+| 4 | Join requests + realtime roster (server-enforced capacity) | ✅ |
 | 5 | Notifications + reminders | ⏳ |
 | 6 | Chat | ⏳ |
 | 7 | My Matches + player profiles | ⏳ |

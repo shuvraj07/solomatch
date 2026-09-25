@@ -1,65 +1,169 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../../../app/router/app_routes.dart';
 import '../../../../app/session/session_provider.dart';
 import '../../../../app/theme/app_spacing.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/error_snackbar.dart';
 import '../../../../core/widgets/placeholder_view.dart';
+import '../../../../core/widgets/run_with_feedback.dart';
 import '../../../../shared/widgets/player_avatar.dart';
 import '../../../../shared/widgets/status_chip.dart';
+import '../../../match_requests/data/match_request_providers.dart';
+import '../../../match_requests/domain/join_request.dart';
+import '../../../match_requests/domain/roster_entry.dart';
+import '../../../match_requests/presentation/request_to_join_sheet.dart';
 import '../../data/match_providers.dart';
 import '../../domain/football_match.dart';
 import '../../domain/match_action.dart';
 import 'widgets/match_action_bar.dart';
 import 'widgets/roster_summary.dart';
 
-/// Live match page. Everything here comes from [matchProvider], so counts
-/// and status change on screen the moment Firestore changes.
+/// Live match page. The match, the viewer's own request and the roster are
+/// separate Firestore streams, so counts, names and the action button all
+/// change on screen the moment anything changes on the server.
 class MatchDetailsScreen extends ConsumerWidget {
   const MatchDetailsScreen({super.key, required this.matchId});
 
   final String matchId;
 
-  Future<void> _confirmCancel(BuildContext context, WidgetRef ref) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel this match?'),
-        content: const Text(
+  Future<bool> _confirm(
+    BuildContext context, {
+    required String title,
+    required String body,
+    required String keep,
+    required String confirm,
+  }) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(title),
+          content: Text(body),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(keep),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(confirm),
+            ),
+          ],
+        ),
+      ) ??
+      false;
+
+  Future<void> _cancelMatch(BuildContext context, WidgetRef ref) async {
+    final ok = await _confirm(
+      context,
+      title: 'Cancel this match?',
+      body:
           'Everyone who asked to join will see it as cancelled. '
           "This can't be undone.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep match'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Cancel match'),
-          ),
-        ],
-      ),
+      keep: 'Keep match',
+      confirm: 'Cancel match',
     );
-    if (ok != true) return;
-    try {
-      await ref.read(matchRepositoryProvider).cancelMatch(matchId);
-    } on Object catch (e) {
-      if (context.mounted) showErrorSnackBar(context, e);
-    }
+    if (!ok || !context.mounted) return;
+    await runWithFeedback(
+      context,
+      () => ref.read(matchRepositoryProvider).cancelMatch(matchId),
+    );
+  }
+
+  Future<void> _requestToJoin(
+    BuildContext context,
+    WidgetRef ref,
+    FootballMatch match,
+  ) async {
+    final profile = ref.read(currentProfileProvider);
+    if (profile == null) return;
+    final input = await showRequestToJoinSheet(
+      context,
+      match: match,
+      suggested: profile.primaryPosition.group,
+    );
+    if (input == null || !context.mounted) return;
+    await runWithFeedback(
+      context,
+      () => ref
+          .read(matchRequestRepositoryProvider)
+          .requestToJoin(
+            match: match,
+            player: profile,
+            preferredGroup: input.group,
+            message: input.message,
+          ),
+      success: 'Request sent. The organizer will get back to you.',
+    );
+  }
+
+  Future<void> _withdraw(BuildContext context, WidgetRef ref) async {
+    final uid = ref.read(currentProfileProvider)?.uid;
+    if (uid == null) return;
+    await runWithFeedback(
+      context,
+      () => ref
+          .read(matchRequestRepositoryProvider)
+          .withdrawRequest(matchId, uid),
+      success: 'Request withdrawn',
+    );
+  }
+
+  Future<void> _leave(BuildContext context, WidgetRef ref) async {
+    final ok = await _confirm(
+      context,
+      title: 'Leave this match?',
+      body: 'Your place opens up for someone else.',
+      keep: 'Stay',
+      confirm: 'Leave match',
+    );
+    if (!ok || !context.mounted) return;
+    await runWithFeedback(
+      context,
+      () => ref.read(matchRequestRepositoryProvider).leave(matchId),
+      success: 'You left the match',
+    );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final match = ref.watch(matchProvider(matchId));
     final uid = ref.watch(currentProfileProvider)?.uid ?? '';
+    final myRequest = ref.watch(myRequestProvider(matchId)).value;
+    final roster = ref.watch(rosterProvider(matchId)).value ?? const [];
+
+    // The organizer deciding shows up here in real time.
+    ref.listen(myRequestProvider(matchId), (previous, next) {
+      final was = previous?.value?.status;
+      final now = next.value?.status;
+      if (was != RequestStatus.pending || was == now) return;
+      final message = switch (now) {
+        RequestStatus.accepted => "You're in! ⚽",
+        RequestStatus.rejected => "Your request wasn't accepted this time.",
+        _ => null,
+      };
+      if (message != null) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(message)));
+      }
+    });
 
     return switch (match) {
       AsyncData(value: final m?) => _Loaded(
         match: m,
-        action: resolveMatchAction(m, uid),
-        onCancel: () => _confirmCancel(context, ref),
+        roster: roster,
+        action: resolveMatchAction(m, uid, myRequest: myRequest),
+        pendingRequests: m.isOrganizer(uid)
+            ? ref.watch(pendingRequestsProvider(matchId)).value?.length ?? 0
+            : 0,
+        onCancel: () => _cancelMatch(context, ref),
+        onRequestToJoin: () => _requestToJoin(context, ref, m),
+        onWithdraw: () => _withdraw(context, ref),
+        onLeave: () => _leave(context, ref),
+        onManageRequests: () => context.push(AppRoutes.matchRequests(matchId)),
       ),
       AsyncData() => Scaffold(
         appBar: AppBar(),
@@ -81,13 +185,25 @@ class MatchDetailsScreen extends ConsumerWidget {
 class _Loaded extends StatelessWidget {
   const _Loaded({
     required this.match,
+    required this.roster,
     required this.action,
+    required this.pendingRequests,
     required this.onCancel,
+    required this.onRequestToJoin,
+    required this.onWithdraw,
+    required this.onLeave,
+    required this.onManageRequests,
   });
 
   final FootballMatch match;
+  final List<RosterEntry> roster;
   final MatchAction action;
+  final int pendingRequests;
   final VoidCallback onCancel;
+  final VoidCallback onRequestToJoin;
+  final VoidCallback onWithdraw;
+  final VoidCallback onLeave;
+  final VoidCallback onManageRequests;
 
   @override
   Widget build(BuildContext context) {
@@ -192,18 +308,18 @@ class _Loaded extends StatelessWidget {
           ),
           info(Icons.payments_outlined, m.price.display, 'Per player'),
           const SizedBox(height: AppSpacing.md),
-          RosterSummary(match: m),
+          RosterSummary(match: m, roster: roster),
           if (m.description.isNotEmpty) section('About', m.description),
           if (m.rules.isNotEmpty) section('Rules', m.rules),
         ],
       ),
       bottomNavigationBar: MatchActionBar(
         action: action,
-        onRequestToJoin: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Join requests are coming in the next update.'),
-          ),
-        ),
+        pendingRequests: pendingRequests,
+        onRequestToJoin: onRequestToJoin,
+        onWithdraw: onWithdraw,
+        onLeave: onLeave,
+        onManageRequests: onManageRequests,
       ),
     );
   }

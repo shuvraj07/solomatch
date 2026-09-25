@@ -68,3 +68,17 @@ firebase deploy --only firestore:rules,firestore:indexes,storage
 | `firebase.json`, `firestore.rules`, `firestore.indexes.json`, `storage.rules` | Yes | |
 | `.firebaserc` | Yes | Project alias. |
 | Service-account keys | **Never** | |
+
+## Cloud Functions
+
+Functions live in `functions/` (TypeScript, Node 22, region `asia-south1`).
+
+```sh
+cd functions && npm install
+FUNCTIONS_DISCOVERY_TIMEOUT=60 firebase deploy --only functions
+```
+
+The longer discovery timeout avoids "User code failed to load … Timeout after
+10000" on slower machines or synced folders such as OneDrive. The first deploy
+also enables Cloud Build, Artifact Registry, Cloud Run and Eventarc. Old build
+images are cleaned up automatically after one day.

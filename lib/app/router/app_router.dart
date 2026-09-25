@@ -8,6 +8,7 @@ import '../../features/auth/presentation/sign_up_screen.dart';
 import '../../features/chat/presentation/messages_screen.dart';
 import '../../features/discover/presentation/discover_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/match_requests/presentation/match_requests_screen.dart';
 import '../../features/matches/domain/match_draft.dart';
 import '../../features/matches/presentation/create_match/create_match_flow_screen.dart';
 import '../../features/matches/presentation/create_match/create_match_screen.dart';
@@ -108,6 +109,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.matchDetailsPattern,
         builder: (context, state) =>
             MatchDetailsScreen(matchId: state.pathParameters['matchId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.matchRequestsPattern,
+        builder: (context, state) =>
+            MatchRequestsScreen(matchId: state.pathParameters['matchId']!),
       ),
     ],
   );
