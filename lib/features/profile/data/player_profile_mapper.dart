@@ -38,6 +38,11 @@ abstract final class PlayerProfileMapper {
         gamesOrganized: (stats['gamesOrganized'] as num?)?.toInt() ?? 0,
         ratingAvg: (stats['ratingAvg'] as num?)?.toDouble() ?? 0,
         ratingCount: (stats['ratingCount'] as num?)?.toInt() ?? 0,
+        goals: (stats['goals'] as num?)?.toInt() ?? 0,
+        assists: (stats['assists'] as num?)?.toInt() ?? 0,
+        yellowCards: (stats['yellowCards'] as num?)?.toInt() ?? 0,
+        redCards: (stats['redCards'] as num?)?.toInt() ?? 0,
+        motmAwards: (stats['motmAwards'] as num?)?.toInt() ?? 0,
       ),
     );
   }

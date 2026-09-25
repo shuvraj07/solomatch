@@ -97,7 +97,13 @@ class RosterSummary extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                entry.player.primaryPosition.shortLabel,
+                                [
+                                  ?match.report
+                                      ?.lineFor(entry.player.uid)
+                                      .summary,
+                                  entry.player.primaryPosition.shortLabel,
+                                ].where((s) => s.isNotEmpty).join('  '),
+                                key: Key('rosterLine_${entry.player.uid}'),
                                 style: TextStyle(color: muted),
                               ),
                             ],

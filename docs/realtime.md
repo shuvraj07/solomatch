@@ -79,3 +79,19 @@ listener. When the last place is taken the status becomes `full`, and
 
 Anything that must stay consistent across users goes in a callable Cloud
 Function with a transaction, not in client code.
+
+## Time-driven changes
+
+The scheduled function `advanceMatchLifecycle` runs every 5 minutes and handles
+changes nobody triggers by hand:
+
+- **Kick-off:** status becomes `started`. Joining and leaving are closed.
+- **Final whistle:** status becomes `completed`. Every roster player gets
+  `gamesPlayed + 1` and the organizer gets `gamesOrganized + 1`. MOTM voting
+  opens for 24 h.
+- **Voting closes:** votes are tallied, and `motm` is written to the match and
+  `motmAwards + 1` to each winner.
+
+Each step re-checks the match inside a transaction, so overlapping runs never
+double-count (see `match_lifecycle.test.mjs`). The screens pick these changes
+up through the same `matchProvider` listener as everything else.

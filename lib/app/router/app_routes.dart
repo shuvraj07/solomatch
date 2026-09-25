@@ -26,4 +26,7 @@ abstract final class AppRoutes {
 
   static const matchRequestsPattern = '/matches/:matchId/requests';
   static String matchRequests(String matchId) => '/matches/$matchId/requests';
+
+  static const matchReportPattern = '/matches/:matchId/report';
+  static String matchReport(String matchId) => '/matches/$matchId/report';
 }

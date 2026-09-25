@@ -11,6 +11,7 @@ import '../../../../core/widgets/placeholder_view.dart';
 import '../../../../core/widgets/run_with_feedback.dart';
 import '../../../../shared/widgets/player_avatar.dart';
 import '../../../../shared/widgets/status_chip.dart';
+import '../../../match_report/presentation/widgets/motm_card.dart';
 import '../../../match_requests/data/match_request_providers.dart';
 import '../../../match_requests/domain/join_request.dart';
 import '../../../match_requests/domain/roster_entry.dart';
@@ -18,6 +19,7 @@ import '../../../match_requests/presentation/request_to_join_sheet.dart';
 import '../../data/match_providers.dart';
 import '../../domain/football_match.dart';
 import '../../domain/match_action.dart';
+import '../../domain/match_status.dart';
 import 'widgets/match_action_bar.dart';
 import 'widgets/roster_summary.dart';
 
@@ -155,6 +157,8 @@ class MatchDetailsScreen extends ConsumerWidget {
       AsyncData(value: final m?) => _Loaded(
         match: m,
         roster: roster,
+        viewerUid: uid,
+        now: DateTime.now(),
         action: resolveMatchAction(m, uid, myRequest: myRequest),
         pendingRequests: m.isOrganizer(uid)
             ? ref.watch(pendingRequestsProvider(matchId)).value?.length ?? 0
@@ -164,6 +168,7 @@ class MatchDetailsScreen extends ConsumerWidget {
         onWithdraw: () => _withdraw(context, ref),
         onLeave: () => _leave(context, ref),
         onManageRequests: () => context.push(AppRoutes.matchRequests(matchId)),
+        onEditReport: () => context.push(AppRoutes.matchReport(matchId)),
       ),
       AsyncData() => Scaffold(
         appBar: AppBar(),
@@ -186,6 +191,8 @@ class _Loaded extends StatelessWidget {
   const _Loaded({
     required this.match,
     required this.roster,
+    required this.viewerUid,
+    required this.now,
     required this.action,
     required this.pendingRequests,
     required this.onCancel,
@@ -193,10 +200,13 @@ class _Loaded extends StatelessWidget {
     required this.onWithdraw,
     required this.onLeave,
     required this.onManageRequests,
+    required this.onEditReport,
   });
 
   final FootballMatch match;
   final List<RosterEntry> roster;
+  final String viewerUid;
+  final DateTime now;
   final MatchAction action;
   final int pendingRequests;
   final VoidCallback onCancel;
@@ -204,6 +214,7 @@ class _Loaded extends StatelessWidget {
   final VoidCallback onWithdraw;
   final VoidCallback onLeave;
   final VoidCallback onManageRequests;
+  final VoidCallback onEditReport;
 
   @override
   Widget build(BuildContext context) {
@@ -308,6 +319,24 @@ class _Loaded extends StatelessWidget {
           ),
           info(Icons.payments_outlined, m.price.display, 'Per player'),
           const SizedBox(height: AppSpacing.md),
+          if (m.status == MatchStatus.completed) ...[
+            MotmCard(match: m, roster: roster, viewerUid: viewerUid, now: now),
+            if (m.isOrganizer(viewerUid) && m.isPostMatchOpen(now))
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: OutlinedButton.icon(
+                  key: const Key('editReportButton'),
+                  onPressed: onEditReport,
+                  icon: const Icon(Icons.edit_note_rounded),
+                  label: Text(
+                    m.report == null
+                        ? 'Add match report (goals, cards)'
+                        : 'Edit match report',
+                  ),
+                ),
+              ),
+            const SizedBox(height: AppSpacing.md),
+          ],
           RosterSummary(match: m, roster: roster),
           if (m.description.isNotEmpty) section('About', m.description),
           if (m.rules.isNotEmpty) section('Rules', m.rules),

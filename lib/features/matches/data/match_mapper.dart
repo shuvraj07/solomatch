@@ -6,6 +6,7 @@ import '../../../shared/models/price.dart';
 import '../../../shared/models/skill_level.dart';
 import '../../../shared/models/user_summary.dart';
 import '../../../shared/models/venue.dart';
+import '../../match_report/domain/match_report.dart';
 import '../domain/football_match.dart';
 import '../domain/match_draft.dart';
 import '../domain/match_status.dart';
@@ -36,7 +37,48 @@ abstract final class MatchMapper {
         photos: _strings(d['photos']),
         status: MatchStatus.fromName(d['status'] as String),
         createdAt: (d['createdAt'] as Timestamp?)?.toDate(),
+        votingClosesAt: (d['votingClosesAt'] as Timestamp?)?.toDate(),
+        report: switch (d['report']) {
+          final Map<String, dynamic> r => reportFrom(r),
+          _ => null,
+        },
+        motm: switch (d['motm']) {
+          final Map<String, dynamic> m => motmFrom(m),
+          _ => null,
+        },
       );
+
+  static MatchReport reportFrom(Map<String, dynamic> r) => MatchReport(
+    players: {
+      for (final e
+          in (r['players'] as Map<String, dynamic>? ?? const {}).entries)
+        e.key: lineFrom(e.value as Map<String, dynamic>),
+    },
+    submittedAt: (r['submittedAt'] as Timestamp?)?.toDate(),
+  );
+
+  static PlayerMatchLine lineFrom(Map<String, dynamic> l) => PlayerMatchLine(
+    goals: _int(l['goals']),
+    assists: _int(l['assists']),
+    yellowCards: _int(l['yellowCards']),
+    redCard: l['redCard'] as bool? ?? false,
+  );
+
+  static Map<String, dynamic> lineTo(PlayerMatchLine l) => {
+    'goals': l.goals,
+    'assists': l.assists,
+    'yellowCards': l.yellowCards,
+    'redCard': l.redCard,
+  };
+
+  static MotmResult motmFrom(Map<String, dynamic> m) => MotmResult(
+    winners: [
+      for (final w in m['winners'] as List<Object?>? ?? const [])
+        userSummaryFrom(w! as Map<String, dynamic>),
+    ],
+    votes: _int(m['votes']),
+    totalVotes: _int(m['totalVotes']),
+  );
 
   /// The document written when a draft is published.
   static Map<String, dynamic> newMatch(

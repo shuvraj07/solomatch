@@ -275,6 +275,31 @@ service cloud.firestore {
         allow read: if signedIn();
         allow write: if false;
       }
+
+      // ----- Man of the Match: matches/{matchId}/motm_votes/{voterId} -----
+      // One vote per voter (doc ID), changeable until voting closes. Voters
+      // are roster players and the organizer; nominees are roster players,
+      // never yourself. The server tallies when voting closes.
+
+      function onRoster(uid) {
+        return exists(/databases/$(database)/documents/matches/$(matchId)/roster/$(uid));
+      }
+
+      match /motm_votes/{voterId} {
+        allow read: if isUser(voterId);
+
+        allow create, update: if isUser(voterId)
+          && incoming().keys().hasOnly(['nomineeId', 'votedAt'])
+          && incoming().votedAt == request.time
+          && incoming().nomineeId is string
+          && incoming().nomineeId != request.auth.uid
+          && onRoster(incoming().nomineeId)
+          && (onRoster(request.auth.uid) || thisMatch().organizer.uid == request.auth.uid)
+          && thisMatch().status == 'completed'
+          && request.time < thisMatch().votingClosesAt;
+
+        allow delete: if false;
+      }
     }
 
     // ---------- match drafts (organizer-private) ----------

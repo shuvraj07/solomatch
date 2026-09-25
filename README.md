@@ -59,6 +59,7 @@ npm run test:rules       # Firestore security rules
 | 2 | Matches core (create flow, drafts, live match details, upcoming list) | ✅ |
 | 3 | Maps + discovery + recommendations | ⏳ |
 | 4 | Join requests + realtime roster (server-enforced capacity) | ✅ |
+| 4b | Match report & awards: auto status, goals/assists/cards, Man of the Match | ✅ |
 | 5 | Notifications + reminders | ⏳ |
 | 6 | Chat | ⏳ |
 | 7 | My Matches + player profiles | ⏳ |

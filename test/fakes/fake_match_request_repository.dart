@@ -29,6 +29,12 @@ class FakeMatchRequestRepository implements MatchRequestRepository {
 
   String _key(String matchId, String playerId) => '$matchId/$playerId';
 
+  /// Puts players straight onto a roster (test setup).
+  void seedRoster(String matchId, List<RosterEntry> entries) {
+    (_roster[matchId] ??= []).addAll(entries);
+    _emit();
+  }
+
   JoinRequest? requestOf(String matchId, String playerId) =>
       _requests[_key(matchId, playerId)];
 

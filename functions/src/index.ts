@@ -2,7 +2,10 @@ import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { HttpsError, type CallableRequest, onCall } from 'firebase-functions/https';
 import { setGlobalOptions } from 'firebase-functions/options';
+import { onSchedule } from 'firebase-functions/scheduler';
 
+import { advanceMatches } from './matches/lifecycle.js';
+import { parseLines, submitMatchReport } from './matches/match_report.js';
 import { acceptRequest, leaveMatch, rejectRequest } from './requests/join_requests.js';
 import { isGroup } from './requests/slots.js';
 import { RuleError } from './shared/rule_error.js';
@@ -69,5 +72,32 @@ export const leaveJoinedMatch = onCall(async (req) => {
   const callerUid = requireUid(req);
   const matchId = requireString(req.data, 'matchId');
   await run(() => leaveMatch(getFirestore(), { matchId, callerUid }));
+  return { ok: true };
+});
+
+/**
+ * Every 5 minutes: start matches at kick-off, complete them at the final
+ * whistle (updating games played), and decide Man of the Match when voting
+ * closes.
+ */
+export const advanceMatchLifecycle = onSchedule(
+  { schedule: 'every 5 minutes', timeZone: 'Asia/Kathmandu' },
+  async () => {
+    const result = await advanceMatches(getFirestore());
+    console.log('match lifecycle', result);
+  },
+);
+
+/** Organizer saves goals/assists/cards: { matchId, players: {uid: line} }. */
+export const saveMatchReport = onCall(async (req) => {
+  const callerUid = requireUid(req);
+  const matchId = requireString(req.data, 'matchId');
+  await run(async () =>
+    submitMatchReport(getFirestore(), {
+      matchId,
+      callerUid,
+      lines: parseLines((req.data as Record<string, unknown>)?.players),
+    }),
+  );
   return { ok: true };
 });

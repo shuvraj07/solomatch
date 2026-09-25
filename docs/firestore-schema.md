@@ -77,10 +77,15 @@ edit descriptive text or cancel. Roster counts and status belong to the server
 | `isIndoor` | bool | |
 | `description`, `rules` | string | ≤ 1000 chars each |
 | `photos` | string[] | ≤ 5 Storage URLs under `match_photos/{organizerUid}/{matchId}/` |
-| `status` | string | `published` → `filling` → `full` → `started` → `completed`, or `cancelled`. The client may only set `cancelled` |
+| `status` | string | `published` → `filling` → `full` → `started` → `completed`, or `cancelled`. The client may only set `cancelled`. `started` and `completed` are set by the scheduled `advanceMatchLifecycle` function |
+| `completedAt` 🔒, `votingClosesAt` 🔒 | timestamp | Set on completion; `votingClosesAt` = `endAt` + 24 h |
+| `report` 🔒 | map | `{players: {uid: {goals, assists, yellowCards (0–2), redCard}}, submittedAt, updatedAt}`, written by the `saveMatchReport` function |
+| `motmClosed` 🔒, `motm` 🔒 | bool, map | `motm = {winners: [{uid, name, username, photoUrl}], votes, totalVotes}`. Several winners means a tie |
 | `createdAt`, `updatedAt` | timestamp | |
 
-Indexes: `(status ASC, startAt ASC)` for the upcoming-matches list.
+Indexes: `(status, startAt)` for the upcoming list and kick-off,
+`(status, endAt)` for completion, and `(status, motmClosed, votingClosesAt)`
+for closing MOTM voting.
 
 ## `matches/{matchId}/requests/{playerId}`: join requests
 
@@ -109,6 +114,20 @@ Index: `(status ASC, createdAt ASC)` for the organizer's pending list.
 `{player (card), group, joinedAt}`. Readable by signed-in users. Written only
 by the `acceptJoinRequest` and `leaveJoinedMatch` Cloud Functions, in the same
 transaction that updates the match counters.
+
+## `matches/{matchId}/motm_votes/{voterId}`: Man of the Match votes
+
+`{nomineeId, votedAt}`. One vote per voter (the doc ID), and it can be changed
+until `votingClosesAt`. Voters are roster players plus the organizer;
+nominees must be on the roster and can't be yourself. Votes are private to
+the voter. The server tallies them when voting closes.
+
+## `players/{uid}.stats` 🔒: career totals
+
+`gamesPlayed`, `gamesOrganized` (on completion), `goals`, `assists`,
+`yellowCards`, `redCards` (from reports; edits apply only the difference) and
+`motmAwards` (when voting closes). `ratingAvg` and `ratingCount` arrive with
+reviews.
 
 ## `match_drafts/{draftId}`: unfinished matches
 

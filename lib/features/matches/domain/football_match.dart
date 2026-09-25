@@ -5,6 +5,7 @@ import '../../../shared/models/price.dart';
 import '../../../shared/models/skill_level.dart';
 import '../../../shared/models/user_summary.dart';
 import '../../../shared/models/venue.dart';
+import '../../match_report/domain/match_report.dart';
 import 'match_status.dart';
 import 'position_slots.dart';
 
@@ -36,6 +37,14 @@ abstract class FootballMatch with _$FootballMatch {
     @Default(<String>[]) List<String> photos,
     required MatchStatus status,
     DateTime? createdAt,
+
+    /// Set when the match completes: end + 24 h. The report can be
+    /// edited and MOTM votes cast until then.
+    DateTime? votingClosesAt,
+    MatchReport? report,
+
+    /// Null until voting closes.
+    MotmResult? motm,
   }) = _FootballMatch;
 
   const FootballMatch._();
@@ -47,4 +56,10 @@ abstract class FootballMatch with _$FootballMatch {
   bool isOrganizer(String uid) => organizer.uid == uid;
 
   Duration get duration => endAt.difference(startAt);
+
+  /// The post-match window (report edits, MOTM votes) is open.
+  bool isPostMatchOpen(DateTime now) =>
+      status == MatchStatus.completed &&
+      motm == null &&
+      (votingClosesAt?.isAfter(now) ?? false);
 }

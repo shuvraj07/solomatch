@@ -86,16 +86,40 @@ class _ProfileBody extends StatelessWidget {
         Card(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Row(
+            child: Column(
               children: [
-                _Stat(value: '${stats.gamesPlayed}', label: 'Matches'),
-                _Stat(
-                  value: stats.hasRating
-                      ? '⭐ ${stats.ratingAvg.toStringAsFixed(1)}'
-                      : '—',
-                  label: 'Rating',
+                Row(
+                  children: [
+                    _Stat(value: '${stats.gamesPlayed}', label: 'Matches'),
+                    _Stat(
+                      value: stats.hasRating
+                          ? '⭐ ${stats.ratingAvg.toStringAsFixed(1)}'
+                          : '—',
+                      label: 'Rating',
+                    ),
+                    _Stat(value: profile.skillLevel.label, label: 'Level'),
+                  ],
                 ),
-                _Stat(value: profile.skillLevel.label, label: 'Level'),
+                const Divider(height: AppSpacing.xl),
+                Row(
+                  children: [
+                    _Stat(value: '⚽ ${stats.goals}', label: 'Goals'),
+                    _Stat(value: '🅰️ ${stats.assists}', label: 'Assists'),
+                    _Stat(
+                      key: const Key('motmStat'),
+                      value: '🏆 ${stats.motmAwards}',
+                      label: 'MOTM',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    _Stat(value: '🟨 ${stats.yellowCards}', label: 'Yellow'),
+                    _Stat(value: '🟥 ${stats.redCards}', label: 'Red'),
+                    _Stat(value: '${stats.gamesOrganized}', label: 'Organized'),
+                  ],
+                ),
               ],
             ),
           ),
@@ -110,7 +134,7 @@ class _ProfileBody extends StatelessWidget {
 }
 
 class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label});
+  const _Stat({super.key, required this.value, required this.label});
 
   final String value;
   final String label;
