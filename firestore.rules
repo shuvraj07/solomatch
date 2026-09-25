@@ -36,7 +36,7 @@ service cloud.firestore {
       return ['fullName', 'searchName', 'photoUrl', 'dateOfBirth', 'city',
               'bio', 'primaryPosition', 'secondaryPositions', 'skillLevel',
               'preferredFoot', 'heightCm', 'yearsPlaying', 'languages',
-              'availability', 'updatedAt'];
+              'availability', 'privacy', 'updatedAt'];
     }
 
     function validProfile(d) {
@@ -57,6 +57,8 @@ service cloud.firestore {
         && d.yearsPlaying is int && d.yearsPlaying >= 0 && d.yearsPlaying <= 60
         && d.languages is list && d.languages.size() <= 10
         && d.availability is list && d.availability.size() <= 21
+        && (!('privacy' in d)
+            || (d.privacy.keys().hasOnly(['hideCity']) && d.privacy.hideCity is bool))
         && d.updatedAt == request.time;
     }
 
@@ -243,6 +245,7 @@ service cloud.firestore {
           && incoming().match.startAt == m.startAt
           && incoming().match.venueName == m.venue.name
           && m.organizer.uid != request.auth.uid
+          && !exists(/databases/$(database)/documents/users/$(m.organizer.uid)/blocks/$(request.auth.uid))
           && m.status in ['published', 'filling']
           && m.startAt > request.time
           && incoming().createdAt == request.time
@@ -401,6 +404,28 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ---------- reports (safety) ----------
+    // Anyone signed in can report; only admins (custom claim) can read.
+
+    match /reports/{reportId} {
+      allow create: if signedIn()
+        && incoming().keys().hasOnly(['reporterId', 'targetType', 'targetId',
+                                      'targetName', 'reason', 'details',
+                                      'status', 'createdAt'])
+        && incoming().reporterId == request.auth.uid
+        && incoming().targetType in ['player', 'match']
+        && incoming().targetId is string && incoming().targetId.size() <= 128
+        && incoming().targetId != request.auth.uid
+        && incoming().targetName is string && incoming().targetName.size() <= 120
+        && incoming().reason in ['harassment', 'no_show', 'unsafe', 'fake',
+                                 'spam', 'inappropriate', 'other']
+        && incoming().details is string && incoming().details.size() <= 500
+        && incoming().status == 'open'
+        && incoming().createdAt == request.time;
+      allow read, update: if signedIn() && request.auth.token.admin == true;
+      allow delete: if false;
+    }
+
     // ---------- match drafts (organizer-private) ----------
 
     match /match_drafts/{draftId} {
@@ -421,9 +446,30 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if isUser(uid);
       allow create, update: if isUser(uid)
-        && incoming().keys().hasOnly(['email', 'createdAt'])
-        && (incoming().email == null || incoming().email == request.auth.token.email);
+        && incoming().keys().hasOnly(['email', 'createdAt', 'notificationPrefs'])
+        && (!('email' in incoming()) || incoming().email == null
+            || incoming().email == request.auth.token.email)
+        && (!('notificationPrefs' in incoming()) || validPrefs(incoming().notificationPrefs));
       allow delete: if false;
+
+      function validPrefs(p) {
+        return p.keys().hasOnly(['requests', 'matches', 'chat', 'reviews'])
+          && (!('requests' in p) || p.requests is bool)
+          && (!('matches' in p) || p.matches is bool)
+          && (!('chat' in p) || p.chat is bool)
+          && (!('reviews' in p) || p.reviews is bool);
+      }
+
+      // Players I've blocked (doc ID = their uid).
+      match /blocks/{blockedId} {
+        allow read, delete: if isUser(uid);
+        allow create: if isUser(uid)
+          && blockedId != uid
+          && incoming().keys().hasOnly(['name', 'createdAt'])
+          && incoming().name is string && incoming().name.size() <= 60
+          && incoming().createdAt == request.time;
+        allow update: if false;
+      }
 
       // FCM registration tokens (doc ID = token), managed by the app.
       match /devices/{token} {

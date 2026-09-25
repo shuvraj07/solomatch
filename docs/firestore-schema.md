@@ -33,6 +33,7 @@ Readable by any signed-in user. Written by the owner.
 | `languages` | string[] | ≤ 10 |
 | `availability` | string[] | `"<weekday>.<band>"`, e.g. `"6.evening"` (1 = Mon). ≤ 21 |
 | `stats` 🔒 | map | `gamesPlayed`, `gamesOrganized`, `ratingAvg`, `ratingCount`. Absent until the server sets it. |
+| `privacy` | map | `{hideCity: bool}`. When true, other players' apps don't show the city. |
 | `createdAt`, `updatedAt` | timestamp | |
 
 ## `usernames/{username}`: uniqueness index
@@ -49,6 +50,7 @@ Only the owner can read or write it.
 | Field | Type | Notes |
 |---|---|---|
 | `email` | string \| null | Must equal the auth token's email |
+| `notificationPrefs` | map | `{requests, matches, chat, reviews}` → bool. A missing key means on. Cloud Functions skip the **push** for a category set to false; the in-app inbox is still written. |
 | `createdAt` | timestamp | |
 
 ### `users/{uid}/devices/{token}`
@@ -62,7 +64,34 @@ can read or write them. The server deletes dead ones.
 by Cloud Functions. The owner can read it and flip `read` to true. See
 [notifications.md](notifications.md).
 
-Later phases add notification preferences, blocks and favorites.
+### `users/{uid}/blocks/{blockedUid}`
+
+`{name, createdAt}`. Owner-only; you can't block yourself. A blocked player
+can't send a join request to your matches (checked in the rules), can't open
+a direct chat with you, and you can't open one with them (checked in
+`openDirectConversation`). Their messages are hidden from you in group chats.
+
+Favorites come in a later phase.
+
+## `reports/{id}`: safety reports
+
+`{reporterId, targetType (player|match), targetId, targetName, reason,
+details (≤ 500), status: 'open', createdAt}`. Reasons: `harassment`,
+`no_show`, `unsafe`, `fake`, `spam`, `inappropriate`, `other`. Anyone signed
+in can create one as themselves. Only accounts with the `admin` custom claim
+can read or update reports; there's no admin UI yet, so review them in the
+Firebase console.
+
+## Account deletion
+
+The `deleteMyAccount` callable (Settings → Delete account):
+
+1. Leaves every upcoming match the player is in and withdraws pending requests.
+2. Cancels upcoming matches they organize (players get the usual notification).
+3. Removes them from conversations and shows them as "Deleted player" in chats
+   and in reviews they wrote. Past rosters and match reports are kept.
+4. Deletes `players/{uid}`, `usernames/{username}`, `users/{uid}` (with all
+   subcollections), their drafts, their Storage files, and finally the Auth user.
 
 ## `matches/{matchId}`: published matches
 
@@ -225,6 +254,9 @@ in `functions/test/rules/` (`npm run test:rules`) and cover:
   there, once, within 7 days, never edited; the reviewer name must be real.
 - Chats: only members can read; you can post only as yourself; conversations
   can't be created by clients; you can move only your own read marker.
+- Blocks are owner-only; a blocked player can't request your matches.
+- Reports: created only as yourself with a known reason, readable only by admins.
+- Notification preferences only accept the four known categories as booleans.
 - Device tokens are owner-only. The inbox can't be written by clients except to
   mark items read, so nobody can fake notifications.
 - Join requests can only be created by the player themselves, with a player

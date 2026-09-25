@@ -104,6 +104,13 @@ export async function openDirectChat(
     if (playerId === organizerId) {
       throw new RuleError('invalid-argument', 'You organize this match.');
     }
+    const [blockedByOrganizer, blockedByPlayer] = await tx.getAll(
+      db.doc(`users/${organizerId}/blocks/${playerId}`),
+      db.doc(`users/${playerId}/blocks/${organizerId}`),
+    );
+    if (blockedByOrganizer.exists || blockedByPlayer.exists) {
+      throw new RuleError('permission-denied', "You can't message this player.");
+    }
     if (!requestSnap.exists) {
       throw new RuleError('failed-precondition', 'Ask to join the match first, then you can message the organizer.');
     }

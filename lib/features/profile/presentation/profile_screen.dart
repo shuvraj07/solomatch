@@ -20,6 +20,18 @@ class ProfileScreen extends ConsumerWidget {
         title: const Text('Profile'),
         actions: [
           IconButton(
+            key: const Key('editProfileButton'),
+            tooltip: 'Edit profile',
+            icon: const Icon(Icons.edit_rounded),
+            onPressed: () => context.push(AppRoutes.editProfile),
+          ),
+          IconButton(
+            key: const Key('settingsButton'),
+            tooltip: 'Settings',
+            icon: const Icon(Icons.settings_rounded),
+            onPressed: () => context.push(AppRoutes.settings),
+          ),
+          IconButton(
             key: const Key('signOutButton'),
             tooltip: 'Sign out',
             icon: const Icon(Icons.logout_rounded),
@@ -31,6 +43,7 @@ class ProfileScreen extends ConsumerWidget {
           ? const Center(child: CircularProgressIndicator())
           : PlayerProfileView(
               profile: profile,
+              isMe: true,
               actions: [
                 FilledButton.tonalIcon(
                   key: const Key('myMatchesButton'),

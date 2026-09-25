@@ -11,6 +11,8 @@ import 'package:solomatch/features/my_matches/data/my_matches_providers.dart';
 import 'package:solomatch/features/notifications/data/notification_providers.dart';
 import 'package:solomatch/features/profile/data/profile_providers.dart';
 import 'package:solomatch/features/reviews/data/review_providers.dart';
+import 'package:solomatch/features/safety/data/safety_providers.dart';
+import 'package:solomatch/features/settings/data/settings_providers.dart';
 
 import '../fakes/fake_auth_repository.dart';
 import '../fakes/fake_chat_repository.dart';
@@ -21,6 +23,7 @@ import '../fakes/fake_my_matches_repository.dart';
 import '../fakes/fake_notifications.dart';
 import '../fakes/fake_profile_repository.dart';
 import '../fakes/fake_review_repository.dart';
+import '../fakes/fake_settings_safety.dart';
 
 /// Pumps the whole app with in-memory repositories on a typical phone
 /// screen (360 × 800 logical pixels).
@@ -36,6 +39,8 @@ Future<void> pumpApp(
   FakePushMessaging? push,
   FakeChatRepository? chat,
   FakeReviewRepository? reviews,
+  FakeSettingsRepository? settings,
+  FakeSafetyRepository? safety,
 }) async {
   final matchRepo = matches ?? FakeMatchRepository();
   tester.view
@@ -67,6 +72,12 @@ Future<void> pumpApp(
         chatRepositoryProvider.overrideWithValue(chat ?? FakeChatRepository()),
         reviewRepositoryProvider.overrideWithValue(
           reviews ?? FakeReviewRepository(),
+        ),
+        settingsRepositoryProvider.overrideWithValue(
+          settings ?? FakeSettingsRepository(),
+        ),
+        safetyRepositoryProvider.overrideWithValue(
+          safety ?? FakeSafetyRepository(),
         ),
       ],
       child: const SoloMatchApp(),

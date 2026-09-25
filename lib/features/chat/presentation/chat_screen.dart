@@ -11,6 +11,7 @@ import '../../../app/theme/app_spacing.dart';
 import '../../../core/widgets/error_snackbar.dart';
 import '../../../core/widgets/placeholder_view.dart';
 import '../../../core/widgets/run_with_feedback.dart';
+import '../../safety/data/safety_providers.dart';
 import '../data/chat_providers.dart';
 import '../domain/chat_models.dart';
 import 'widgets/message_bubble.dart';
@@ -88,6 +89,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final me = ref.watch(currentProfileProvider)?.uid ?? '';
     final conversation = ref.watch(conversationProvider(widget.conversationId));
     final messages = ref.watch(messagesProvider(widget.conversationId));
+    final blocked = ref.watch(blockedIdsProvider);
 
     ref.listen(messagesProvider(widget.conversationId), (_, next) {
       if (next.value case final list?) _markRead(list);
@@ -140,7 +142,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
               AsyncData(value: final list) => _MessageList(
-                messages: list,
+                messages: [
+                  for (final msg in list)
+                    if (!blocked.contains(msg.senderId)) msg,
+                ],
                 conversation: c,
                 me: me,
               ),

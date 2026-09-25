@@ -14,12 +14,16 @@ class PlayerProfileView extends StatelessWidget {
     super.key,
     required this.profile,
     this.actions = const [],
+    this.isMe = false,
   });
 
   final PlayerProfile profile;
 
   /// Extra buttons under the header (e.g. "My matches" on your own).
   final List<Widget> actions;
+
+  /// Viewing your own profile (privacy settings don't hide anything).
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +48,9 @@ class PlayerProfileView extends StatelessWidget {
           style: theme.textTheme.headlineSmall,
         ),
         Text(
-          '@${profile.username} · ${profile.city}',
+          profile.hideCity && !isMe
+              ? '@${profile.username}'
+              : '@${profile.username} · ${profile.city}',
           textAlign: TextAlign.center,
           style: TextStyle(color: muted),
         ),

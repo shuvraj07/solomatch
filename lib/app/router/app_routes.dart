@@ -17,6 +17,12 @@ abstract final class AppRoutes {
 
   static const myMatches = '/my-matches';
 
+  static const editProfile = '/profile/edit';
+  static const settings = '/settings';
+  static const blockedPlayers = '/settings/blocked';
+  static const infoPattern = '/settings/info/:page';
+  static String infoPage(String page) => '/settings/info/$page';
+
   static const notifications = '/notifications';
 
   static const chatPattern = '/chat/:conversationId';

@@ -70,6 +70,29 @@ export async function deliver(
  * Pushes to every registered device of [uid] (no inbox entry). Returns
  * true if the user had any devices. Tokens FCM rejects as dead are removed.
  */
+export type NotificationCategory = 'requests' | 'matches' | 'chat' | 'reviews';
+
+/** Which settings toggle controls a notification type. */
+export function categoryOf(type: string): NotificationCategory {
+  switch (type) {
+    case 'new_request':
+    case 'request_accepted':
+    case 'request_rejected':
+    case 'request_expired':
+    case 'player_left':
+    case 'added_to_match':
+      return 'requests';
+    case 'chat_message':
+      return 'chat';
+    case 'new_review':
+    case 'motm_vote':
+    case 'motm_won':
+      return 'reviews';
+    default:
+      return 'matches';
+  }
+}
+
 export async function pushToUser(
   db: Firestore,
   push: PushSender,
@@ -77,7 +100,11 @@ export async function pushToUser(
   notification: { title: string; body: string },
   data: Record<string, string>,
 ): Promise<boolean> {
-  const devices = db.collection('users').doc(uid).collection('devices');
+  const user = db.collection('users').doc(uid);
+  const prefs = (await user.get()).data()?.notificationPrefs ?? {};
+  if (prefs[categoryOf(data.type ?? '')] === false) return false;
+
+  const devices = user.collection('devices');
   const tokens = (await devices.get()).docs.map((d) => d.id);
   if (tokens.length === 0) return false;
 

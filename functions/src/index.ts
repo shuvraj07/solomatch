@@ -1,11 +1,14 @@
 import { initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
+import { getStorage } from 'firebase-admin/storage';
 import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from 'firebase-functions/firestore';
 import { HttpsError, type CallableRequest, onCall } from 'firebase-functions/https';
 import { setGlobalOptions } from 'firebase-functions/options';
 import { onSchedule } from 'firebase-functions/scheduler';
 
+import { deleteAccount } from './account/delete_account.js';
 import {
   chatPushes,
   lastMessagePreview,
@@ -243,4 +246,27 @@ export const onReviewCreated = onDocumentCreated('reviews/{reviewId}', async (ev
   const db = getFirestore();
   const note = await applyReview(db, event.params.reviewId);
   if (note) await deliver(db, getMessaging(), [note], event.id);
+});
+
+// -------------------------------------------------------------------- account
+
+/** Permanently deletes the caller's account and personal data. */
+export const deleteMyAccount = onCall({ timeoutSeconds: 300 }, async (req) => {
+  const uid = requireUid(req);
+  const bucket = getStorage().bucket();
+  const summary = await deleteAccount(
+    {
+      db: getFirestore(),
+      deleteAuthUser: (u) => getAuth().deleteUser(u),
+      deleteFiles: async (prefix) => {
+        try {
+          await bucket.deleteFiles({ prefix });
+        } catch (e) {
+          console.warn('deleteFiles failed', prefix, e);
+        }
+      },
+    },
+    uid,
+  );
+  return summary;
 });

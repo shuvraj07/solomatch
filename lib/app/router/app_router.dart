@@ -19,7 +19,11 @@ import '../../features/my_matches/presentation/my_matches_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/profile_setup_screen.dart';
 import '../../features/players/presentation/player_profile_screen.dart';
+import '../../features/profile/presentation/edit_profile_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/safety/presentation/blocked_players_screen.dart';
+import '../../features/settings/presentation/info_pages.dart';
+import '../../features/settings/presentation/settings_screen.dart';
 import '../session/session_provider.dart';
 import '../session/splash_screen.dart';
 import '../shell/main_shell.dart';
@@ -128,6 +132,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.notifications,
         builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.editProfile,
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.blockedPlayers,
+        builder: (context, state) => const BlockedPlayersScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.infoPattern,
+        builder: (context, state) => InfoPageScreen(
+          page: InfoPage.values.byName(state.pathParameters['page']!),
+        ),
       ),
       GoRoute(
         path: AppRoutes.myMatches,

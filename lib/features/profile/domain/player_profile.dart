@@ -30,5 +30,8 @@ abstract class PlayerProfile with _$PlayerProfile {
     @Default(<String>[]) List<String> languages,
     @Default(Availability()) Availability availability,
     @Default(PlayerStats()) PlayerStats stats,
+
+    /// Privacy: don't show the city to other players.
+    @Default(false) bool hideCity,
   }) = _PlayerProfile;
 }

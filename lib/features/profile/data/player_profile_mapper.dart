@@ -33,6 +33,9 @@ abstract final class PlayerProfileMapper {
       yearsPlaying: (data['yearsPlaying'] as num?)?.toInt() ?? 0,
       languages: _strings(data['languages']),
       availability: Availability.fromStrings(_strings(data['availability'])),
+      hideCity:
+          (data['privacy'] as Map<String, dynamic>?)?['hideCity'] as bool? ??
+          false,
       stats: PlayerStats(
         gamesPlayed: (stats['gamesPlayed'] as num?)?.toInt() ?? 0,
         gamesOrganized: (stats['gamesOrganized'] as num?)?.toInt() ?? 0,
@@ -66,6 +69,7 @@ abstract final class PlayerProfileMapper {
     'yearsPlaying': p.yearsPlaying,
     'languages': p.languages,
     'availability': p.availability.toStrings(),
+    'privacy': {'hideCity': p.hideCity},
   };
 
   /// Birthdays are stored as UTC midnight; read them back as a local

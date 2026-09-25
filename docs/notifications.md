@@ -58,3 +58,16 @@ unit-tested in `functions/test/functions/notifications.test.mjs`.
 1. Install the app and sign in on a phone, then allow notifications.
 2. From a second account, request to join a match the first account organizes.
 3. The first phone gets "New join request", even with the app closed.
+
+## Preferences
+
+Players can turn push notifications off per category in Settings. The choice
+is stored in `users/{uid}.notificationPrefs`. `pushToUser` reads it and skips
+the push when the event's category is off. The inbox entry is always written.
+
+| Category | Events |
+|---|---|
+| `requests` | Join requests, accepted/declined/expired, a player left, added to a match |
+| `matches` | Everything else: match changes, cancellations, kick-off and report reminders |
+| `chat` | New messages |
+| `reviews` | New ratings, Man of the Match votes and awards |

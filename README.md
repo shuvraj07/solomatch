@@ -37,7 +37,6 @@ flutter run --dart-define=USE_FIREBASE_EMULATORS=true
 | [contributing.md](docs/contributing.md) | Branching, commits, adding a new feature |
 | [authentication.md](docs/authentication.md) | Sign-in methods, session and redirects, onboarding |
 | [firestore-schema.md](docs/firestore-schema.md) | Collections, fields, security rules |
-
 | [notifications.md](docs/notifications.md) | Push + inbox: events, delivery, reminders |
 | [realtime.md](docs/realtime.md) | Live data flow, the join flow end to end, why rosters can't overbook |
 
@@ -66,5 +65,5 @@ npm run test:rules       # Firestore security rules
 | 7 | My Matches + public player profiles | ✅ |
 | 8 | Favorites + football catalog | ⏳ |
 | 9a | Reviews & ratings | ✅ |
-| 9b | Safety, settings, edit profile | ⏳ |
+| 9b | Safety, settings, edit profile, delete account | ✅ |
 | 10 | Hardening, integration tests, CI | ⏳ |

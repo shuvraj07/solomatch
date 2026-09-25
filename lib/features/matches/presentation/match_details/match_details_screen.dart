@@ -18,6 +18,8 @@ import '../../../match_requests/domain/join_request.dart';
 import '../../../match_requests/domain/roster_entry.dart';
 import '../../../match_requests/presentation/request_to_join_sheet.dart';
 import '../../../reviews/presentation/widgets/rate_players_card.dart';
+import '../../../safety/domain/safety_repository.dart';
+import '../../../safety/presentation/report_sheet.dart';
 import '../../data/match_providers.dart';
 import '../../domain/football_match.dart';
 import '../../domain/match_action.dart';
@@ -248,6 +250,19 @@ class _Loaded extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          if (action != MatchAction.organizer)
+            PopupMenuButton<String>(
+              key: const Key('matchReportMenu'),
+              onSelected: (_) => showReportSheet(
+                context,
+                type: ReportTarget.match,
+                targetId: m.id,
+                targetName: m.title,
+              ),
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'report', child: Text('Report match')),
+              ],
+            ),
           if (action == MatchAction.organizer)
             PopupMenuButton<String>(
               key: const Key('matchMenu'),
