@@ -22,6 +22,7 @@ class MyMatchTile extends ConsumerWidget {
     MyMatchEntry(requestStatus: RequestStatus.accepted) => "⚽ You're playing",
     MyMatchEntry(requestStatus: RequestStatus.pending) => '⏳ Request pending',
     MyMatchEntry(requestStatus: RequestStatus.rejected) => 'Request declined',
+    MyMatchEntry(requestStatus: RequestStatus.expired) => 'Request expired',
     _ => 'Request withdrawn',
   };
 

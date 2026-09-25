@@ -74,6 +74,12 @@ describe('who gets notified: join requests', () => {
     assert.deepEqual(summary(rej), ['amit:request_rejected']);
   });
 
+  test('request still pending at kick-off → player told it expired', () => {
+    const out = forRequestChange('m1', 'amit', req('pending'), req('expired'), match());
+    assert.deepEqual(summary(out), ['amit:request_expired']);
+    assert.equal(out[0].body, 'Saturday Night Football started before your request was accepted.');
+  });
+
   test('accepted player leaves → organizer; withdrawing a pending request → nobody', () => {
     assert.deepEqual(
       summary(forRequestChange('m1', 'amit', req('accepted'), req('cancelled'), match())),
@@ -107,10 +113,19 @@ describe('who gets notified: match changes', () => {
     );
   });
 
-  test('completed → roster asked to vote; MOTM decided → winners', () => {
+  test('kick-off → organizer and roster, once each', () => {
+    const out = forMatchChange('m1', match({ status: 'full' }), match({ status: 'started' }), {
+      roster: ['raj', 'amit', 'org'],
+      pending: ['sita'],
+    });
+    assert.deepEqual(summary(out), ['org:kick_off', 'raj:kick_off', 'amit:kick_off']);
+    assert.equal(out[0].title, 'Kick-off! ⚽');
+  });
+
+  test('completed → roster asked to vote, organizer reminded to report; MOTM decided → winners', () => {
     assert.deepEqual(
       summary(forMatchChange('m1', match({ status: 'started' }), match({ status: 'completed' }), audience)),
-      ['raj:motm_vote', 'amit:motm_vote'],
+      ['raj:motm_vote', 'amit:motm_vote', 'org:report_reminder'],
     );
     const decided = match({ status: 'completed', motm: { winners: [{ uid: 'amit' }] } });
     assert.deepEqual(

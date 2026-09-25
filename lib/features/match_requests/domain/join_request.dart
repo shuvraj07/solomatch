@@ -11,7 +11,10 @@ enum RequestStatus {
   rejected,
 
   /// Withdrawn by the player, or they left after being accepted.
-  cancelled;
+  cancelled,
+
+  /// Still pending at kick-off, closed by the server.
+  expired;
 
   static RequestStatus fromName(String name) => values.byName(name);
 }

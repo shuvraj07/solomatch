@@ -66,6 +66,17 @@ describe('advanceMatches', () => {
     assert.equal((await data('matches/off')).status, 'cancelled');
   });
 
+  test('kick-off expires requests still waiting; accepted ones untouched', async () => {
+    const now = Date.now();
+    const ref = await seed('m1', { status: 'filling', startAt: now - 1000, endAt: now + HOUR });
+    await ref.collection('requests').doc('amit').set({ status: 'pending' });
+    await ref.collection('requests').doc('sita').set({ status: 'accepted' });
+
+    await advanceMatches(db, new Date(now));
+    assert.equal((await data('matches/m1/requests/amit')).status, 'expired');
+    assert.equal((await data('matches/m1/requests/sita')).status, 'accepted');
+  });
+
   test('completes matches at the final whistle and counts games', async () => {
     const now = Date.now();
     await seed('m1', {

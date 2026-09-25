@@ -67,7 +67,17 @@ async function startMatch(db: Firestore, matchId: string, now: Timestamp) {
   return db.runTransaction(async (tx) => {
     const m = (await tx.get(ref)).data();
     if (!m || !UPCOMING.includes(m.status) || m.startAt > now) return false;
+    const pending = await tx.get(ref.collection('requests').where('status', '==', 'pending'));
+
     tx.update(ref, { status: 'started', updatedAt: FieldValue.serverTimestamp() });
+    // Nobody can be accepted after kick-off; close out waiting requests so
+    // players aren't left hanging (they're notified by the request trigger).
+    for (const r of pending.docs) {
+      tx.update(r.ref, {
+        status: 'expired',
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
     return true;
   });
 }

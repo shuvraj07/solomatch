@@ -15,7 +15,10 @@ export type NotificationType =
   | 'match_reminder'
   | 'motm_vote'
   | 'motm_won'
-  | 'added_to_match';
+  | 'added_to_match'
+  | 'request_expired'
+  | 'kick_off'
+  | 'report_reminder';
 
 export interface Outgoing {
   uid: string;
@@ -97,6 +100,17 @@ export function forRequestChange(
       },
     ];
   }
+  if (was === 'pending' && now === 'expired') {
+    return [
+      {
+        uid: playerId,
+        type: 'request_expired',
+        title: 'Request expired',
+        body: `${title} started before your request was accepted.`,
+        matchId,
+      },
+    ];
+  }
   if (was === 'accepted' && now === 'cancelled') {
     return [
       {
@@ -148,11 +162,23 @@ export function forMatchChange(
           body: `${title} on ${kickOffLabel(after.startAt.toMillis())} was cancelled by the organizer.`,
         });
         break;
+      case 'started':
+        to([...new Set([organizer, ...audience.roster])], {
+          type: 'kick_off',
+          title: 'Kick-off! ⚽',
+          body: `${title} is starting now. Have a great game!`,
+        });
+        break;
       case 'completed':
         to(audience.roster, {
           type: 'motm_vote',
           title: 'Vote Man of the Match 🏆',
           body: `${title} is over. Who was the best player?`,
+        });
+        to([organizer], {
+          type: 'report_reminder',
+          title: 'Add the match report 📝',
+          body: `How did ${title} go? Add goals, assists and cards within 24 hours.`,
         });
         break;
     }

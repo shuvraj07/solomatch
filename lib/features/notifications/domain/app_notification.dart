@@ -28,6 +28,10 @@ abstract class AppNotification with _$AppNotification {
     'match_almost_full' || 'match_full' => '👥',
     'match_cancelled' => '🚫',
     'match_reminder' => '⏰',
+    'kick_off' => '⚽',
+    'request_expired' => '⌛',
+    'report_reminder' => '📝',
+    'added_to_match' => '🤝',
     'motm_vote' || 'motm_won' => '🏆',
     _ => '⚽',
   };

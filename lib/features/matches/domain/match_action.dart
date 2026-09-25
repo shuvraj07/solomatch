@@ -42,7 +42,7 @@ MatchAction resolveMatchAction(
       return MatchAction.pending;
     case RequestStatus.rejected:
       return MatchAction.declined;
-    case RequestStatus.cancelled || null:
+    case RequestStatus.cancelled || RequestStatus.expired || null:
       break;
   }
   if (match.isFull) return MatchAction.full;

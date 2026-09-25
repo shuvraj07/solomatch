@@ -20,6 +20,10 @@ Firestore change ──trigger──▶ messages.ts (who gets what) ──▶ de
 | `match_full` | status → `full` | organizer |
 | `match_cancelled` | status → `cancelled` | roster + pending requesters |
 | `match_reminder` | scheduled job: 24 h, 2 h, 30 min before kick-off | organizer + roster |
+| `kick_off` | status → `started` | organizer + roster |
+| `request_expired` | request still `pending` at kick-off → `expired` | player |
+| `report_reminder` | status → `completed` | organizer |
+| `added_to_match` | organizer pre-confirmed them when publishing | player |
 | `motm_vote` | status → `completed` | roster |
 | `motm_won` | `motm` decided | winner(s) |
 

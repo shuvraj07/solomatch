@@ -108,7 +108,7 @@ per match. The player and the match organizer can read it.
 
 | Field | Type | Notes |
 |---|---|---|
-| `status` | string | `pending` → `accepted` \| `rejected` (server), or `cancelled` (player withdrew or left) |
+| `status` | string | `pending` → `accepted` \| `rejected` (server), `cancelled` (player withdrew or left), or `expired` (still pending at kick-off; server) |
 | `player` | map | Player card: `uid, name, username, photoUrl, primaryPosition, secondaryPositions, skillLevel, ratingAvg, ratingCount, gamesPlayed`. The rules check it matches `players/{uid}` |
 | `preferredGroup` | string | `gk` \| `def` \| `mid` \| `fwd` \| `any` |
 | `message` | string | ≤ 200 chars |
