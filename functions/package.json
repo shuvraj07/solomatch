@@ -1,0 +1,15 @@
+{
+  "name": "solomatch-functions",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-solomatch \"node --test test/rules/\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0"
+  }
+}

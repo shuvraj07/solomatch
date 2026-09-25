@@ -35,16 +35,23 @@ flutter run --dart-define=USE_FIREBASE_EMULATORS=true
 | [firebase-setup.md](docs/firebase-setup.md) | Creating the Firebase project and connecting the app |
 | [testing.md](docs/testing.md) | Test layout and how to run each kind of test |
 | [contributing.md](docs/contributing.md) | Branching, commits, adding a new feature |
+| [authentication.md](docs/authentication.md) | Sign-in methods, session and redirects, onboarding |
+| [firestore-schema.md](docs/firestore-schema.md) | Collections, fields, security rules |
 
-More docs (Firestore schema, realtime, auth, Google Maps) are added with the
-phase that introduces each system.
+Realtime and Google Maps docs are added with the phases that introduce them.
+
+Security-rules tests (need Java and the Firebase CLI):
+
+```sh
+cd functions && npm install && npm run test:rules
+```
 
 ## Status
 
 | Phase | Scope | State |
 |---|---|---|
 | 0 | Foundation: theme, navigation shell, Firebase bootstrap, emulator config | ✅ |
-| 1 | Auth + onboarding | ⏳ |
+| 1 | Auth + onboarding (email, Google, forgot password, profile setup) | ✅ |
 | 2 | Matches core | ⏳ |
 | 3 | Maps + discovery + recommendations | ⏳ |
 | 4 | Join requests + realtime roster (server-enforced capacity) | ⏳ |

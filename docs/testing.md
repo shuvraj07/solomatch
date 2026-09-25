@@ -6,7 +6,7 @@
 | Widget | `test/**` | `flutter test` | Screens rendered with fake repositories |
 | Integration | `integration_test/` | `flutter test integration_test` (device + emulators) | End-to-end flows |
 | Cloud Functions | `functions/test/` | `npm test` inside `functions/` (Emulator Suite) | Accept/reject transactions, **capacity race conditions** |
-| Security rules | `functions/test/rules/` | `npm run test:rules` | Who can read and write what |
+| Security rules | `functions/test/rules/` | `cd functions && npm run test:rules` (starts the emulators) | Who can read and write what |
 
 The `test/` folder mirrors `lib/`. For example, `lib/shared/models/price.dart`
 is tested in `test/shared/models/price_test.dart`.
@@ -25,6 +25,11 @@ await tester.pumpWidget(
   ),
 );
 ```
+
+`test/helpers/pump_app.dart` does this for you. It pumps the app on a
+360 × 800 phone-sized screen with `FakeAuthRepository` and
+`FakeProfileRepository`. Use `tester.tapVisible(finder)` to scroll a widget
+into view before tapping it.
 
 In-memory fakes live in `test/fakes/`. To test a realtime UI, a fake exposes
 a `StreamController`; the test pushes a new value into it and checks that the

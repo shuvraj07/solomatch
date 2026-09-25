@@ -1,21 +1,25 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:solomatch/app/app.dart';
 
-Future<void> pumpApp(WidgetTester tester) async {
-  await tester.pumpWidget(const ProviderScope(child: SoloMatchApp()));
-  await tester.pumpAndSettle();
-}
+import '../fakes/fake_auth_repository.dart';
+import '../fakes/fake_profile_repository.dart';
+import '../fakes/test_data.dart';
+import '../helpers/pump_app.dart';
+
+Future<void> pumpSignedIn(WidgetTester tester) => pumpApp(
+  tester,
+  auth: FakeAuthRepository(signedIn: testUser),
+  profiles: FakeProfileRepository(profiles: [testProfile()]),
+);
 
 void main() {
   testWidgets('starts on Home', (tester) async {
-    await pumpApp(tester);
+    await pumpSignedIn(tester);
     expect(find.text('Find your next match ⚽'), findsOneWidget);
   });
 
   testWidgets('bottom navigation switches tabs', (tester) async {
-    await pumpApp(tester);
+    await pumpSignedIn(tester);
 
     await tester.tap(find.bySemanticsLabel('Discover'));
     await tester.pumpAndSettle();
@@ -27,11 +31,12 @@ void main() {
 
     await tester.tap(find.bySemanticsLabel('Profile'));
     await tester.pumpAndSettle();
-    expect(find.text('Your football profile'), findsOneWidget);
+    expect(find.text('Raj Shrestha'), findsOneWidget);
+    expect(find.text('@raj10 · Kathmandu'), findsOneWidget);
   });
 
   testWidgets('Create Match button opens the create flow', (tester) async {
-    await pumpApp(tester);
+    await pumpSignedIn(tester);
 
     await tester.tap(find.byKey(const Key('createMatchButton')));
     await tester.pumpAndSettle();

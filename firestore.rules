@@ -1,11 +1,108 @@
 rules_version = '2';
 
-// Baseline: deny everything. Each feature phase opens exactly the access it
-// needs, with tests in functions/test/rules. See docs/firestore-schema.md.
+// Security model: see docs/firestore-schema.md. Everything not matched below
+// is denied. Every rule here has tests in functions/test/rules.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+
+    // ---------- helpers ----------
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function changedKeys() {
+      return incoming().diff(resource.data).affectedKeys();
+    }
+
+    // ---------- players (public football profile) ----------
+
+    function positions() {
+      return ['goalkeeper', 'centerBack', 'fullBack', 'defensiveMidfielder',
+              'centralMidfielder', 'attackingMidfielder', 'winger', 'striker'];
+    }
+
+    // Fields a player may write. `stats` is server-only; `username` is set
+    // once at creation together with its `usernames/` claim.
+    function editableProfileKeys() {
+      return ['fullName', 'searchName', 'photoUrl', 'dateOfBirth', 'city',
+              'bio', 'primaryPosition', 'secondaryPositions', 'skillLevel',
+              'preferredFoot', 'heightCm', 'yearsPlaying', 'languages',
+              'availability', 'updatedAt'];
+    }
+
+    function validProfile(d) {
+      return d.fullName is string && d.fullName.size() >= 2 && d.fullName.size() <= 60
+        && d.searchName == d.fullName.lower()
+        && (d.photoUrl == null || (d.photoUrl is string && d.photoUrl.size() <= 1024))
+        // 16+ (5840 days; the app does the exact calendar check).
+        && d.dateOfBirth is timestamp
+        && d.dateOfBirth < request.time - duration.value(5840, 'd')
+        && d.city is string && d.city.size() >= 1 && d.city.size() <= 60
+        && d.bio is string && d.bio.size() <= 300
+        && d.primaryPosition in positions()
+        && d.secondaryPositions is list && d.secondaryPositions.size() <= 3
+        && d.secondaryPositions.hasOnly(positions())
+        && d.skillLevel in ['beginner', 'intermediate', 'advanced']
+        && d.preferredFoot in ['right', 'left', 'both']
+        && (d.heightCm == null || (d.heightCm is int && d.heightCm >= 120 && d.heightCm <= 230))
+        && d.yearsPlaying is int && d.yearsPlaying >= 0 && d.yearsPlaying <= 60
+        && d.languages is list && d.languages.size() <= 10
+        && d.availability is list && d.availability.size() <= 21
+        && d.updatedAt == request.time;
+    }
+
+    match /players/{uid} {
+      allow read: if signedIn();
+
+      allow create: if isUser(uid)
+        && incoming().keys().hasOnly(editableProfileKeys().concat(['username', 'createdAt']))
+        && validProfile(incoming())
+        && incoming().createdAt == request.time
+        // The username claim must be written in the same transaction.
+        && getAfter(/databases/$(database)/documents/usernames/$(incoming().username)).data.uid == uid;
+
+      allow update: if isUser(uid)
+        && changedKeys().hasOnly(editableProfileKeys())
+        && validProfile(incoming());
+
+      allow delete: if false;
+    }
+
+    // ---------- usernames (uniqueness index) ----------
+
+    match /usernames/{username} {
+      // `get` lets onboarding check availability; listing is not allowed.
+      allow get: if signedIn();
+      allow list: if false;
+
+      // Only while creating your profile (so one username per player).
+      allow create: if signedIn()
+        && username.matches('^[a-z0-9_]{3,20}$')
+        && incoming().keys().hasOnly(['uid'])
+        && incoming().uid == request.auth.uid
+        && !exists(/databases/$(database)/documents/players/$(request.auth.uid))
+        && getAfter(/databases/$(database)/documents/players/$(request.auth.uid)).data.username == username;
+
+      allow update, delete: if false;
+    }
+
+    // ---------- users (private account data) ----------
+
+    match /users/{uid} {
+      allow read: if isUser(uid);
+      allow create, update: if isUser(uid)
+        && incoming().keys().hasOnly(['email', 'createdAt'])
+        && (incoming().email == null || incoming().email == request.auth.token.email);
+      allow delete: if false;
     }
   }
 }
