@@ -52,7 +52,7 @@ cd functions && npm install && npm run test:rules
 |---|---|---|
 | 0 | Foundation: theme, navigation shell, Firebase bootstrap, emulator config | ✅ |
 | 1 | Auth + onboarding (email, Google, forgot password, profile setup) | ✅ |
-| 2 | Matches core | ⏳ |
+| 2 | Matches core (create flow, drafts, live match details, upcoming list) | ✅ |
 | 3 | Maps + discovery + recommendations | ⏳ |
 | 4 | Join requests + realtime roster (server-enforced capacity) | ⏳ |
 | 5 | Notifications + reminders | ⏳ |

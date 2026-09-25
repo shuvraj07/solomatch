@@ -15,6 +15,12 @@ abstract final class AppRoutes {
   static const messages = '/messages';
   static const profile = '/profile';
 
-  /// Full-screen flow pushed above the tab shell.
+  /// Full-screen flows pushed above the tab shell.
   static const createMatch = '/matches/create';
+
+  /// The step-by-step flow; pass the MatchDraft as `extra`.
+  static const createMatchFlow = '/matches/create/edit';
+
+  static const matchDetailsPattern = '/matches/:matchId';
+  static String matchDetails(String matchId) => '/matches/$matchId';
 }

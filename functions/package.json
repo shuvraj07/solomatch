@@ -6,7 +6,7 @@
     "node": "20"
   },
   "scripts": {
-    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-solomatch \"node --test test/rules/\""
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-solomatch \"node --test --test-concurrency=1 test/rules/\""
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",

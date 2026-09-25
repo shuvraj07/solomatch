@@ -54,6 +54,44 @@ Only the owner can read or write it.
 Later phases add notification preferences, FCM device tokens
 (`users/{uid}/devices`), blocks and favorites.
 
+## `matches/{matchId}`: published matches
+
+Readable by any signed-in user. Created by the organizer, whose app writes the
+document and deletes the draft in one batch. After that, the organizer can only
+edit descriptive text or cancel. Roster counts and status belong to the server
+(Phase 4).
+
+| Field | Type | Notes |
+|---|---|---|
+| `organizer` | map | `{uid, name, username, photoUrl}`. `username` must match the organizer's `players` doc |
+| `title` / `searchTitle` | string | 3–80 chars; `searchTitle` = lowercase |
+| `venue` | map | `{name, address, city, placeId, lat, lng}`. Coordinates are null until the map picker (Phase 3) |
+| `startAt`, `endAt` | timestamp | Must start in the future; 30 min – 6 h long |
+| `format` | string | `fiveASide` \| `sevenASide` \| `nineASide` \| `elevenASide` |
+| `maxPlayers` | int | 2–30 |
+| `currentPlayers` 🔒 | int | Accepted players. Starts at 0 |
+| `spotsRemaining` 🔒 | int | `maxPlayers − currentPlayers`, kept for queries/sorting |
+| `slots` 🔒 (filled) | map | `{gk, def, mid, fwd, any}` → `{needed, filled}`. The `needed` values add up to `maxPlayers` |
+| `skillLevel` | string | `beginner` \| `intermediate` \| `advanced` \| `any` |
+| `price` | map | `{amount (int NPR), currency: 'NPR', isFree}` |
+| `isIndoor` | bool | |
+| `description`, `rules` | string | ≤ 1000 chars each |
+| `photos` | string[] | ≤ 5 Storage URLs under `match_photos/{organizerUid}/{matchId}/` |
+| `status` | string | `published` → `filling` → `full` → `started` → `completed`, or `cancelled`. The client may only set `cancelled` |
+| `createdAt`, `updatedAt` | timestamp | |
+
+Indexes: `(status ASC, startAt ASC)` for the upcoming-matches list.
+
+## `match_drafts/{draftId}`: unfinished matches
+
+Private to the organizer (`organizerId == auth.uid`). Same shape as the create
+form: `title`, `venue`, `date` (UTC midnight), `startMinutes`/`endMinutes`
+(minutes after midnight), `format`, `maxPlayers`, `neededPositions`
+(`{gk: 1, ...}`), `skillLevel`, `priceAmount`, `isIndoor`, `description`,
+`rules`, `photos`, `updatedAt`. The draft ID becomes the match ID on publish.
+
+Index: `(organizerId ASC, updatedAt DESC)`.
+
 ## Security
 
 `firestore.rules` denies everything that isn't explicitly allowed. The tests are
@@ -64,3 +102,8 @@ in `functions/test/rules/` (`npm run test:rules`) and cover:
 - Under-16 dates of birth and unknown positions are rejected.
 - One username per player: a second claim is rejected once a profile exists.
 - Private `users/{uid}` documents are owner-only, and `email` must match the token.
+- Matches can only be published by their organizer, with zero counters, valid
+  slots that add up to `maxPlayers`, a future start and a sane duration.
+- Organizers can't change capacity, counters or status (except cancel), and
+  other players can't edit or cancel at all. Matches can't be deleted.
+- Drafts are private to their organizer.

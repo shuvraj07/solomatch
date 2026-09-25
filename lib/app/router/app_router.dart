@@ -8,7 +8,10 @@ import '../../features/auth/presentation/sign_up_screen.dart';
 import '../../features/chat/presentation/messages_screen.dart';
 import '../../features/discover/presentation/discover_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/matches/domain/match_draft.dart';
+import '../../features/matches/presentation/create_match/create_match_flow_screen.dart';
 import '../../features/matches/presentation/create_match/create_match_screen.dart';
+import '../../features/matches/presentation/match_details/match_details_screen.dart';
 import '../../features/onboarding/presentation/profile_setup_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../session/session_provider.dart';
@@ -91,6 +94,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.createMatch,
         builder: (context, state) => const CreateMatchScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.createMatchFlow,
+        // The draft travels as `extra`; without one (e.g. after a restart)
+        // fall back to the draft picker.
+        redirect: (context, state) =>
+            state.extra is MatchDraft ? null : AppRoutes.createMatch,
+        builder: (context, state) =>
+            CreateMatchFlowScreen(initialDraft: state.extra! as MatchDraft),
+      ),
+      GoRoute(
+        path: AppRoutes.matchDetailsPattern,
+        builder: (context, state) =>
+            MatchDetailsScreen(matchId: state.pathParameters['matchId']!),
       ),
     ],
   );

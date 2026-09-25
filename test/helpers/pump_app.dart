@@ -3,9 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:solomatch/app/app.dart';
 import 'package:solomatch/features/auth/data/auth_providers.dart';
+import 'package:solomatch/features/matches/data/match_providers.dart';
 import 'package:solomatch/features/profile/data/profile_providers.dart';
 
 import '../fakes/fake_auth_repository.dart';
+import '../fakes/fake_match_repository.dart';
 import '../fakes/fake_profile_repository.dart';
 
 /// Pumps the whole app with in-memory repositories on a typical phone
@@ -14,6 +16,7 @@ Future<void> pumpApp(
   WidgetTester tester, {
   required FakeAuthRepository auth,
   FakeProfileRepository? profiles,
+  FakeMatchRepository? matches,
 }) async {
   tester.view
     ..physicalSize = const Size(1080, 2400)
@@ -26,6 +29,9 @@ Future<void> pumpApp(
         authRepositoryProvider.overrideWithValue(auth),
         profileRepositoryProvider.overrideWithValue(
           profiles ?? FakeProfileRepository(),
+        ),
+        matchRepositoryProvider.overrideWithValue(
+          matches ?? FakeMatchRepository(),
         ),
       ],
       child: const SoloMatchApp(),

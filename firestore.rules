@@ -95,6 +95,125 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ---------- matches ----------
+
+    function matchFormats() {
+      return ['fiveASide', 'sevenASide', 'nineASide', 'elevenASide'];
+    }
+
+    function slotGroups() {
+      return ['gk', 'def', 'mid', 'fwd', 'any'];
+    }
+
+    function openSlot(s, max) {
+      return s.keys().hasOnly(['needed', 'filled'])
+        && s.needed is int && s.needed >= 0 && s.needed <= max
+        && s.filled == 0;
+    }
+
+    // New match: nothing filled, groups add up exactly to maxPlayers.
+    function validNewSlots(s, max) {
+      return s.keys().hasOnly(slotGroups()) && s.keys().hasAll(slotGroups())
+        && openSlot(s.gk, max) && openSlot(s.def, max) && openSlot(s.mid, max)
+        && openSlot(s.fwd, max) && openSlot(s.any, max)
+        && s.gk.needed + s.def.needed + s.mid.needed + s.fwd.needed + s.any.needed == max;
+    }
+
+    function validVenue(v) {
+      return v.keys().hasOnly(['name', 'address', 'city', 'placeId', 'lat', 'lng'])
+        && v.name is string && v.name.size() >= 1 && v.name.size() <= 80
+        && v.address is string && v.address.size() <= 120
+        && v.city is string && v.city.size() >= 1 && v.city.size() <= 60
+        && (v.placeId == null || v.placeId is string)
+        && (v.lat == null || (v.lat is number && v.lat >= -90 && v.lat <= 90))
+        && (v.lng == null || (v.lng is number && v.lng >= -180 && v.lng <= 180));
+    }
+
+    function validMatchText(d) {
+      return d.title is string && d.title.size() >= 3 && d.title.size() <= 80
+        && d.searchTitle == d.title.lower()
+        && d.description is string && d.description.size() <= 1000
+        && d.rules is string && d.rules.size() <= 1000
+        && d.photos is list && d.photos.size() <= 5;
+    }
+
+    function validPrice(p) {
+      return p.keys().hasOnly(['amount', 'currency', 'isFree'])
+        && p.amount is int && p.amount >= 0 && p.amount <= 100000
+        && p.currency == 'NPR'
+        && p.isFree == (p.amount == 0);
+    }
+
+    function isMatchOrganizer() {
+      return signedIn() && resource.data.organizer.uid == request.auth.uid;
+    }
+
+    match /matches/{matchId} {
+      allow read: if signedIn();
+
+      // Publishing. Counters start at zero; after this only the server
+      // (Cloud Functions) changes roster counts and status, except cancel.
+      allow create: if signedIn()
+        && incoming().keys().hasOnly([
+             'organizer', 'title', 'searchTitle', 'venue', 'startAt', 'endAt',
+             'format', 'maxPlayers', 'currentPlayers', 'spotsRemaining', 'slots',
+             'skillLevel', 'price', 'isIndoor', 'description', 'rules', 'photos',
+             'status', 'createdAt', 'updatedAt'])
+        && incoming().organizer.keys().hasOnly(['uid', 'name', 'username', 'photoUrl'])
+        && incoming().organizer.uid == request.auth.uid
+        && incoming().organizer.username
+             == get(/databases/$(database)/documents/players/$(request.auth.uid)).data.username
+        && validMatchText(incoming())
+        && validVenue(incoming().venue)
+        && incoming().startAt is timestamp && incoming().startAt > request.time
+        && incoming().endAt is timestamp
+        && incoming().endAt >= incoming().startAt + duration.value(30, 'm')
+        && incoming().endAt <= incoming().startAt + duration.value(6, 'h')
+        && incoming().format in matchFormats()
+        && incoming().maxPlayers is int
+        && incoming().maxPlayers >= 2 && incoming().maxPlayers <= 30
+        && incoming().currentPlayers == 0
+        && incoming().spotsRemaining == incoming().maxPlayers
+        && validNewSlots(incoming().slots, incoming().maxPlayers)
+        && incoming().skillLevel in ['beginner', 'intermediate', 'advanced', 'any']
+        && validPrice(incoming().price)
+        && incoming().isIndoor is bool
+        && incoming().status == 'published'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isMatchOrganizer()
+        && incoming().updatedAt == request.time
+        && (
+          // Edit descriptive fields.
+          (changedKeys().hasOnly(['title', 'searchTitle', 'description', 'rules',
+                                  'photos', 'updatedAt'])
+            && validMatchText(incoming()))
+          ||
+          // Cancel before kick-off.
+          (changedKeys().hasOnly(['status', 'updatedAt'])
+            && incoming().status == 'cancelled'
+            && resource.data.status in ['published', 'filling', 'full'])
+        );
+
+      allow delete: if false;
+    }
+
+    // ---------- match drafts (organizer-private) ----------
+
+    match /match_drafts/{draftId} {
+      allow read, delete: if signedIn()
+        && resource.data.organizerId == request.auth.uid;
+
+      allow create, update: if signedIn()
+        && incoming().organizerId == request.auth.uid
+        && (resource == null || resource.data.organizerId == request.auth.uid)
+        && incoming().title is string && incoming().title.size() <= 200
+        && incoming().description is string && incoming().description.size() <= 2000
+        && incoming().rules is string && incoming().rules.size() <= 2000
+        && incoming().photos is list && incoming().photos.size() <= 5;
+    }
+
     // ---------- users (private account data) ----------
 
     match /users/{uid} {
